@@ -1,5 +1,10 @@
 import logo from './logo.svg';
 import './App.css';
+import DashboardScreen from './components/DashboardScreen'
+import ExchangeScreen from './components/ExchangeScreen'
+import HomeScreen from './components/HomeScreen'
+import LoginScreen from './components/LoginScreen'
+import SignupScreen from './components/SignupScreen'
 
 function App() {
   return (
