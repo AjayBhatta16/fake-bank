@@ -1,7 +1,7 @@
 const fs = require('fs')
 const uuid = require('uuid')
 
-class dataEditor {
+class DataEditor {
     constructor(dataFile) {
         this.dataFile = dataFile
         this.data = ''
@@ -35,7 +35,7 @@ class dataEditor {
         return conflictingUsers.length == 0
     }
     createUser(id, username, fullName, password, email, phoneNumber) {
-        if(!validateNewUser(id, username, email, phoneNumber)) {
+        if(!this.validateNewUser(id, username, email, phoneNumber)) {
             return false 
         }
         let userObj = {
@@ -49,6 +49,7 @@ class dataEditor {
         }
         this.data.users.push(userObj)
         this.save()
+        return this.generateAuthToken(username)
     }
     validateLogin(username, password) {
         let validUsers = this.data.users.filter(user => (
@@ -59,7 +60,7 @@ class dataEditor {
             )
             && user.password == this.encryptPassword(password)
         ))
-        return validUsers.length == 1 ? validUsers[0] : {}
+        return validUsers.length == 1 ? this.generateAuthToken(username) : false
     }
     validateNewUUID(id) {
         return !this.data.authTokens.some(token => token.id == id)
@@ -92,7 +93,7 @@ class dataEditor {
         let token = (this.data.authTokens.filter(token => token.id == tokenId))[0]
         if(!token || token.expirationDate.getTime() < Date.now()) {
             this.cleanTokens()
-            return {}
+            return false
         }
         token.id = this.generateNewUUID()
         token.expDate.setHours(token.expDate.getHours() + 1)
@@ -103,23 +104,23 @@ class dataEditor {
         let token = this.data.authTokens.filter(token => token.id == tokenId)[0]
         if(!token || token.expirationDate.getTime() < Date.now()) {
             this.cleanTokens()
-            return null
+            return false
         }
         return this.data.users.filter(user => user.username == token.username)
     }
     getAllAccountsForUser(username, tokenId) {
         if(this.checkAuthToken(tokenId) != username) {
-            return 'error'
+            return false
         }
         return this.data.users.filter(user => user.username == username)[0].accounts
     }
     getAccount(username, tokenId, accountNumber) {
         if(this.checkAuthToken(tokenId) != username) {
-            return 'error'
+            return false
         }
         let user = this.data.users.filter(user => user.username == username)[0]
-        let account = user.accounts.filter(acc => acc.accountNumber == accountNumber)
-        return account ? account : 'error'
+        let account = user.accounts.filter(acc => acc.accountNumber == accountNumber)[0]
+        return account ? account : {}
     }
     validateNewAccount(username, id) {
         let user = this.data.users.filter(user => user.username == username)[0]
@@ -127,7 +128,7 @@ class dataEditor {
     }
     createAccount(username, tokenId, accountType, amount) {
         if(this.checkAuthToken(tokenId) != username) {
-            return 'error'
+            return false 
         }
         let id = Math.floor(Math.random() * 99999999)
         if(!this.validateNewAccount(username, id)) {
@@ -146,12 +147,12 @@ class dataEditor {
     }
     closeAccount(username, tokenId, accountId) {
         if(this.checkAuthToken(tokenId) != username) {
-            return 'error'
+            return false
         }
         let user = this.data.users.filter(user => user.username == username)[0]
         user.accounts = user.accounts.filter(acc => acc.accountNumber == accountId)
         this.save()
-        return 'success'
+        return accountId
     }
     transfer(username, tokenId, fromAccountId, toAccountId, amount) {
         if(this.checkAuthToken(tokenId) != username) {
@@ -184,3 +185,5 @@ class dataEditor {
         return 'success'
     }
 }
+
+module.exports = DataEditor
