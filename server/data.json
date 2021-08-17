@@ -1,8 +1,29 @@
 {
     "users": [
-
+        {
+            "id": "7f3b7332-526f-4b7a-ae4a-f521adc05e80",
+            "username": "test1",
+            "fullName": "Joe Smith",
+            "password": "a-b-c-d-1-2-3-4",
+            "email": "joesmith@email.com",
+            "phoneNumber": "1234567890",
+            "accounts": []
+        },
+        {
+            "id": "a77b7591-8831-4f54-8b28-2115aafd1b8f",
+            "username": "test2",
+            "fullName": "Mark Sanchez",
+            "password": "a-b-c-d-1-2-3-4",
+            "email": "buttfumble@email.com",
+            "phoneNumber": "4371934199",
+            "accounts": []
+        }
     ],
     "authTokens": [
-        
+        {
+            "username": "test1",
+            "id": "2b819ee6-b001-41ad-be6a-f2319241ec6c",
+            "expirationDate": "2021-08-17T03:19:58.697Z"
+        }
     ]
 }

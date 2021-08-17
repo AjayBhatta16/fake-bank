@@ -21,7 +21,7 @@ class DataEditor {
     encryptPassword(password) {
         let charList = password.split('')
         charList.forEach(ch => {
-            ch = ch.charCodeAt(0).toString()
+            ch = ch.charCodeAt(0)
         })
         return charList.join('-')
     }

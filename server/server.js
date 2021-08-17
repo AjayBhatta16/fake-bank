@@ -6,6 +6,8 @@ const DataEditor = require('./data-editor')
 
 const app = express()
 app.use(cors())
+app.use(express.json())
+app.use(express.urlencoded({extended: true}))
 
 let dataEditor = new DataEditor('./data.json')
 
@@ -19,7 +21,7 @@ GET /token/verify         username,tokenId                                      
 POST /account/create      username,tokenId,type,amount                              createAccount
 GET /account/selectall    username,tokenId                                          getAllAccountsForUser
 GET /account/selectone    username,tokenId,accountNumber                            getAccount
-DELETE /account/delete    username,tokenId,accountNumber                            closeAccount
+POST /account/delete      username,tokenId,accountNumber                            closeAccount
 POST /exchange            username,tokenId,to,from,transactionType,amount           withdraw,deposit,transfer
 */
 
@@ -46,6 +48,7 @@ app.post('/user/create', (req, res) => {
 })
 
 app.get('/user/verify', (req, res) => {
+    console.log(req.params)
     let token = dataEditor.validateLogin(req.body.username, req.body.password)
     if(!token) {
         res.json({
@@ -135,7 +138,7 @@ app.get('/account/selectone', (req, res) => {
     res.json(account)
 })
 
-app.delete('/account/delete', (req, res) => {
+app.post('/account/delete', (req, res) => {
     let accountId = dataEditor.closeAccount(
         req.body.username,
         req.body.tokenId,
