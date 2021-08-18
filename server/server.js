@@ -11,20 +11,6 @@ app.use(express.urlencoded({extended: true}))
 
 let dataEditor = new DataEditor('./data.json')
 
-/*
-Endpoint                  Parameters                                                DBCli Method(s)
----------------------------------------------------------------------------------------------------------------
-POST /user/create         username,firstName,lastName,email,phoneNumber,password    createUser
-POST /user/verify         username,password                                         validateLogin
-POST /token/refresh       username,tokenId                                          refreshToken
-POST /token/verify        username,tokenId                                          checkAuthToken
-POST /account/create      username,tokenId,type,amount                              createAccount
-POST /account/selectall   username,tokenId                                          getAllAccountsForUser
-POST /account/selectone   username,tokenId,accountNumber                            getAccount
-POST /account/delete      username,tokenId,accountNumber                            closeAccount
-POST /exchange            username,tokenId,to,from,transactionType,amount           withdraw,deposit,transfer
-*/
-
 app.post('/user/create', (req, res) => {
     if(!dataEditor.validateNewUser('', req.body.username, req.body.email, req.body.phoneNumber)) {
         res.json({

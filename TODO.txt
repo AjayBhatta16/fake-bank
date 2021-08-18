@@ -1,5 +1,4 @@
 TODO:
-2. Test exchange route
 3. Fix password encryption and token cleanup
 4. Design & implement home screen
 5. Design & implement login and signup screens

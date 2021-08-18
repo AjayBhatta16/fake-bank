@@ -4,6 +4,6 @@ import StandardContainer from './StandardContainer'
 
 export default function DashboardScreen() {
     return (
-        <></>
+        <p>dashboard screen</p>
     )
 }

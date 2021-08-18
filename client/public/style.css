@@ -1,0 +1,23 @@
+.home-background {
+    background-image: url("home-background.jpeg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    height: 100vh;
+}
+
+button {
+    margin: 10px;
+}
+
+.navbar {
+    border-radius: 5px;
+}
+
+.container-fluid {
+    padding: 2px;
+}
+
+.jumbotron {
+    max-width: 500px;
+    margin: 15vh auto;
+}

@@ -6,6 +6,6 @@ import WithdrawScreen from './exchange/WithdrawScreen'
 
 export default function ExchangeScreen() {
     return (
-        <></>
+        <p>exchange screen</p>
     )
 }
