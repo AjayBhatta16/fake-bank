@@ -49,7 +49,7 @@ echo POST /account/create
 echo --------------------------------------------------------------------------------------------------------------------
 echo successful run
 curl -i -X POST -H 'Content-Type: application/json' -d '{"username": "test1", "tokenId" :"d81d9ef9-32b4-498e-b184-87ad60eaccaf", "type": "checking", "amount": 0}' http://localhost:3001/account/create && echo
-curl -i -X POST -H 'Content-Type: application/json' -d '{"username": "test1", "tokenId" :"437344c5-6c1a-4f93-9b57-dc24703f9977", "type": "savings", "amount": 400}' http://localhost:3001/account/create && echo
+curl -i -X POST -H 'Content-Type: application/json' -d '{"username": "test1", "tokenId" :"11b9e1bd-deb6-4d50-aa35-de5d7588ef23", "type": "savings", "amount": 400}' http://localhost:3001/account/create && echo
 echo bad token 
 curl -i -X POST -H 'Content-Type: application/json' -d '{"username": "test1", "tokenId" :"invalid-token", "type": "checking", "amount": 29.99}' http://localhost:3001/account/create && echo
 
@@ -75,5 +75,23 @@ echo successful run
 curl -i -X POST -H 'Content-Type: application/json' -d '{"username": "test1", "tokenId" :"d81d9ef9-32b4-498e-b184-87ad60eaccaf", "accountNumber": 42308879}' http://localhost:3001/account/delete && echo
 echo bad token 
 curl -i -X POST -H 'Content-Type: application/json' -d '{"username": "test1", "tokenId" :"invalid-token", "accountNumber": 20797647}' http://localhost:3001/account/delete && echo
+
+echo POST /exchange 
+echo --------------------------------------------------------------------------------------------------------------------
+echo successful withdraw
+curl -i -X POST -H 'Content-Type: application/json' -d '{"username": "test1", "tokenId" :"6636de44-220b-4df4-aaf0-87e79e0f4cbc", "to": 0, "from": 46690979, "transactionType": "withdraw", "amount": 12}' http://localhost:3001/exchange && echo
+echo successful deposit
+curl -i -X POST -H 'Content-Type: application/json' -d '{"username": "test1", "tokenId" :"6636de44-220b-4df4-aaf0-87e79e0f4cbc", "to": 46690979, "from": 0, "transactionType": "deposit", "amount": 12}' http://localhost:3001/exchange && echo
+echo successful transfer
+curl -i -X POST -H 'Content-Type: application/json' -d '{"username": "test1", "tokenId" :"6636de44-220b-4df4-aaf0-87e79e0f4cbc", "to": 42308879, "from": 46690979, "transactionType": "transfer", "amount": 12}' http://localhost:3001/exchange && echo
+echo successful ghost transfer 
+curl -i -X POST -H 'Content-Type: application/json' -d '{"username": "test1", "tokenId" :"6636de44-220b-4df4-aaf0-87e79e0f4cbc", "to": null, "from": 42308879, "transactionType": "transfer", "amount": 6}' http://localhost:3001/exchange && echo
+echo invalid transactionType 
+curl -i -X POST -H 'Content-Type: application/json' -d '{"username": "test1", "tokenId" :"6636de44-220b-4df4-aaf0-87e79e0f4cbc", "to": 42308879, "from": 46690979, "transactionType": "scam", "amount": 12}' http://localhost:3001/exchange && echo
+echo invalid token 
+curl -i -X POST -H 'Content-Type: application/json' -d '{"username": "test1", "tokenId" :"invalid-token", "to": 42308879, "from": 46690979, "transactionType": "deposit", "amount": 12}' http://localhost:3001/exchange && echo
+echo invalid accountNumber 
+curl -i -X POST -H 'Content-Type: application/json' -d '{"username": "test1", "tokenId" :"6636de44-220b-4df4-aaf0-87e79e0f4cbc", "to": 42308876, "from": 46690979, "transactionType": "deposit", "amount": 12}' http://localhost:3001/exchange && echo
+
 
 echo 

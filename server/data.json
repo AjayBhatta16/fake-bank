@@ -12,7 +12,13 @@
                     "accountNumber": 42308879,
                     "owner": "7f3b7332-526f-4b7a-ae4a-f521adc05e80",
                     "accountType": "checking",
-                    "amount": 0
+                    "amount": 6
+                },
+                {
+                    "accountNumber": 46690979,
+                    "owner": "7f3b7332-526f-4b7a-ae4a-f521adc05e80",
+                    "accountType": "savings",
+                    "amount": 388
                 }
             ]
         },
@@ -31,6 +37,11 @@
             "username": "test1",
             "id": "d81d9ef9-32b4-498e-b184-87ad60eaccaf",
             "expirationDate": 1629273518949
+        },
+        {
+            "username": "test1",
+            "id": "6636de44-220b-4df4-aaf0-87e79e0f4cbc",
+            "expirationDate": 1629318813909
         }
     ]
 }

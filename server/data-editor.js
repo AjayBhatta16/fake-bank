@@ -161,7 +161,7 @@ class DataEditor {
         return accountId
     }
     transfer(username, tokenId, fromAccountId, toAccountId, amount) {
-        if(this.checkAuthToken(tokenId) != username) {
+        if(this.checkAuthToken(tokenId).username != username) {
             return 'bad token'
         }
         let returnMsg = this.withdraw(username, tokenId, fromAccountId, amount)
@@ -169,7 +169,7 @@ class DataEditor {
         return returnMsg
     }
     deposit(username, tokenId, accountId, amount) {
-        if(this.checkAuthToken(tokenId) != username) {
+        if(this.checkAuthToken(tokenId).username != username) {
             return 'bad token'
         }
         let user = this.data.users.filter(user => user.username == username)[0]
@@ -180,7 +180,7 @@ class DataEditor {
         return 'success'
     }
     withdraw(username, tokenId, accountId, amount) {
-        if(this.checkAuthToken(tokenId) != username) {
+        if(this.checkAuthToken(tokenId).username != username) {
             return 'bad token'
         }
         let user = this.data.users.filter(user => user.username == username)[0]
