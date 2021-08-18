@@ -1,7 +1,16 @@
+html {
+    background-color: #222222;
+}
 .home-background {
     background-image: url("home-background.jpeg");
     background-repeat: no-repeat;
     background-size: cover;
+    height: 100vh;
+}
+
+.standard-background {
+    background-image: url("standard-background.jpg");
+    background-size: 100vw 100vh;
     height: 100vh;
 }
 
@@ -20,4 +29,16 @@ button {
 .jumbotron {
     max-width: 500px;
     margin: 15vh auto;
+}
+
+.wrapper {
+    padding: 10px;
+    margin: auto;
+    max-width: 420px;
+    border-radius: 15px;
+    margin-top: 20vh;
+}
+
+.signup {
+    margin-top: 5vh;
 }

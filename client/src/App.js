@@ -9,6 +9,7 @@ import SignupScreen from './components/SignupScreen'
 
 function App() {
   const [screen, setScreen] = useState('home')
+  console.log('here')
   switch(screen) {
     case 'dashboard':
       return <DashboardScreen setScreen={setScreen} />
