@@ -45,5 +45,35 @@ curl -i -X POST -H 'Content-Type: application/json' -d '{"username": "test1", "t
 echo expired token 
 curl -i -X POST -H 'Content-Type: application/json' -d '{"username": "test1", "tokenId" :"2b819ee6-b001-41ad-be6a-f2319241ec6c"}' http://localhost:3001/token/verify  && echo
 
+echo POST /account/create 
+echo --------------------------------------------------------------------------------------------------------------------
+echo successful run
+curl -i -X POST -H 'Content-Type: application/json' -d '{"username": "test1", "tokenId" :"d81d9ef9-32b4-498e-b184-87ad60eaccaf", "type": "checking", "amount": 0}' http://localhost:3001/account/create && echo
+curl -i -X POST -H 'Content-Type: application/json' -d '{"username": "test1", "tokenId" :"437344c5-6c1a-4f93-9b57-dc24703f9977", "type": "savings", "amount": 400}' http://localhost:3001/account/create && echo
+echo bad token 
+curl -i -X POST -H 'Content-Type: application/json' -d '{"username": "test1", "tokenId" :"invalid-token", "type": "checking", "amount": 29.99}' http://localhost:3001/account/create && echo
+
+echo POST /account/selectall
+echo --------------------------------------------------------------------------------------------------------------------
+echo successful run
+curl -i -X POST -H 'Content-Type: application/json' -d '{"username": "test1", "tokenId" :"4556b328-a1d2-46e2-b22d-b4e07d65f6b5"}' http://localhost:3001/account/selectall  && echo
+echo bad token 
+curl -i -X POST -H 'Content-Type: application/json' -d '{"username": "test1", "tokenId" :"invalid-token"}' http://localhost:3001/account/selectall && echo
+
+echo POST /account/selectone
+echo --------------------------------------------------------------------------------------------------------------------
+echo successful run 
+curl -i -X POST -H 'Content-Type: application/json' -d '{"username": "test1", "tokenId" :"8d742dee-ae2d-4c92-8f6e-d8a95cbd1053", "accountNumber": 20797647}' http://localhost:3001/account/selectone && echo
+echo account does not exist 
+curl -i -X POST -H 'Content-Type: application/json' -d '{"username": "test1", "tokenId" :"8d742dee-ae2d-4c92-8f6e-d8a95cbd1053", "accountNumber": 12345}' http://localhost:3001/account/selectone && echo
+echo bad token
+curl -i -X POST -H 'Content-Type: application/json' -d '{"username": "test1", "tokenId" :"invalid-token", "accountNumber": 20797647}' http://localhost:3001/account/selectone && echo
+
+echo POST /account/delete 
+echo --------------------------------------------------------------------------------------------------------------------
+echo successful run
+curl -i -X POST -H 'Content-Type: application/json' -d '{"username": "test1", "tokenId" :"d81d9ef9-32b4-498e-b184-87ad60eaccaf", "accountNumber": 42308879}' http://localhost:3001/account/delete && echo
+echo bad token 
+curl -i -X POST -H 'Content-Type: application/json' -d '{"username": "test1", "tokenId" :"invalid-token", "accountNumber": 20797647}' http://localhost:3001/account/delete && echo
 
 echo 

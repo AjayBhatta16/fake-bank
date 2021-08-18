@@ -143,7 +143,7 @@ app.post('/account/delete', (req, res) => {
         req.body.tokenId,
         req.body.accountNumber
     )
-    if(!account) {
+    if(!accountId) {
         res.json({
             status: '400',
             msg: 'Provided token is not valid'

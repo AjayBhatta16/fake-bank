@@ -115,13 +115,13 @@ class DataEditor {
         return (this.data.users.filter(user => user.username == token.username))[0]
     }
     getAllAccountsForUser(username, tokenId) {
-        if(this.checkAuthToken(tokenId) != username) {
+        if(this.checkAuthToken(tokenId).username != username) {
             return false
         }
-        return this.data.users.filter(user => user.username == username)[0].accounts
+        return (this.data.users.filter(user => user.username == username))[0].accounts
     }
     getAccount(username, tokenId, accountNumber) {
-        if(this.checkAuthToken(tokenId) != username) {
+        if(this.checkAuthToken(tokenId).username != username) {
             return false
         }
         let user = this.data.users.filter(user => user.username == username)[0]
@@ -133,7 +133,7 @@ class DataEditor {
         return !user.accounts.some(acc => acc.id == id)
     }
     createAccount(username, tokenId, accountType, amount) {
-        if(this.checkAuthToken(tokenId) != username) {
+        if(this.checkAuthToken(tokenId).username != username) {
             return false 
         }
         let id = Math.floor(Math.random() * 99999999)
@@ -152,11 +152,11 @@ class DataEditor {
         return account 
     }
     closeAccount(username, tokenId, accountId) {
-        if(this.checkAuthToken(tokenId) != username) {
+        if(this.checkAuthToken(tokenId).username != username) {
             return false
         }
         let user = this.data.users.filter(user => user.username == username)[0]
-        user.accounts = user.accounts.filter(acc => acc.accountNumber == accountId)
+        user.accounts = user.accounts.filter(acc => acc.accountNumber != accountId)
         this.save()
         return accountId
     }

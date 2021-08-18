@@ -7,7 +7,14 @@
             "password": "a-b-c-d-1-2-3-4",
             "email": "joesmith@email.com",
             "phoneNumber": "1234567890",
-            "accounts": []
+            "accounts": [
+                {
+                    "accountNumber": 42308879,
+                    "owner": "7f3b7332-526f-4b7a-ae4a-f521adc05e80",
+                    "accountType": "checking",
+                    "amount": 0
+                }
+            ]
         },
         {
             "id": "a77b7591-8831-4f54-8b28-2115aafd1b8f",
@@ -22,8 +29,8 @@
     "authTokens": [
         {
             "username": "test1",
-            "id": "523cc1da-28ca-4c1d-a92b-e72412cd0577",
-            "expirationDate": 1629269735081
+            "id": "d81d9ef9-32b4-498e-b184-87ad60eaccaf",
+            "expirationDate": 1629273518949
         }
     ]
 }
