@@ -60,7 +60,7 @@ class DataEditor {
             )
             && user.password == this.encryptPassword(password)
         ))
-        return validUsers.length == 1 ? this.generateAuthToken(username) : false
+        return validUsers[0] ? this.generateAuthToken(validUsers[0].username) : false
     }
     validateNewUUID(id) {
         return !this.data.authTokens.some(token => token.id == id)
@@ -79,34 +79,40 @@ class DataEditor {
         let token = {
             username: username,
             id: id,
-            expirationDate: expDate
+            expirationDate: expDate.getTime()
         }
         this.data.authTokens.push(token)
         this.save()
         return token 
     }
     cleanTokens() {
-        this.data.authTokens = this.data.authTokens.filter(token => token.expirationDate.getTime() <= Date.now())
+        this.data.authTokens = this.data.authTokens.filter(token => {
+            const tokenDate = new Date(token.expirationDate)
+            return tokenDate.getTime() <= Date.now()
+        })
         this.save()
     }
     refreshToken(tokenId) {
         let token = (this.data.authTokens.filter(token => token.id == tokenId))[0]
-        if(!token || token.expirationDate.getTime() < Date.now()) {
+        let tokenDate = token ? new Date(token.expirationDate) : null 
+        if(!token || tokenDate.getTime() < Date.now()) {
             this.cleanTokens()
             return false
         }
         token.id = this.generateNewUUID()
-        token.expDate.setHours(token.expDate.getHours() + 1)
+        tokenDate.setHours(tokenDate.getHours() + 1)
+        token.expirationDate = tokenDate.getTime()
         this.save()
         return token 
     }
     checkAuthToken(tokenId) {
-        let token = this.data.authTokens.filter(token => token.id == tokenId)[0]
-        if(!token || token.expirationDate.getTime() < Date.now()) {
+        let token = (this.data.authTokens.filter(token => token.id == tokenId))[0]
+        let tokenDate = token ? new Date(token.expirationDate) : null 
+        if(!token || tokenDate.getTime() < Date.now()) {
             this.cleanTokens()
             return false
         }
-        return this.data.users.filter(user => user.username == token.username)
+        return (this.data.users.filter(user => user.username == token.username))[0]
     }
     getAllAccountsForUser(username, tokenId) {
         if(this.checkAuthToken(tokenId) != username) {

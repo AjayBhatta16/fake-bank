@@ -22,8 +22,8 @@
     "authTokens": [
         {
             "username": "test1",
-            "id": "2b819ee6-b001-41ad-be6a-f2319241ec6c",
-            "expirationDate": "2021-08-17T03:19:58.697Z"
+            "id": "523cc1da-28ca-4c1d-a92b-e72412cd0577",
+            "expirationDate": 1629269735081
         }
     ]
 }

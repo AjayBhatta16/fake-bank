@@ -15,12 +15,12 @@ let dataEditor = new DataEditor('./data.json')
 Endpoint                  Parameters                                                DBCli Method(s)
 ---------------------------------------------------------------------------------------------------------------
 POST /user/create         username,firstName,lastName,email,phoneNumber,password    createUser
-GET /user/verify          username,password                                         validateLogin
+POST /user/verify         username,password                                         validateLogin
 POST /token/refresh       username,tokenId                                          refreshToken
-GET /token/verify         username,tokenId                                          checkAuthToken
+POST /token/verify        username,tokenId                                          checkAuthToken
 POST /account/create      username,tokenId,type,amount                              createAccount
-GET /account/selectall    username,tokenId                                          getAllAccountsForUser
-GET /account/selectone    username,tokenId,accountNumber                            getAccount
+POST /account/selectall   username,tokenId                                          getAllAccountsForUser
+POST /account/selectone   username,tokenId,accountNumber                            getAccount
 POST /account/delete      username,tokenId,accountNumber                            closeAccount
 POST /exchange            username,tokenId,to,from,transactionType,amount           withdraw,deposit,transfer
 */
@@ -47,8 +47,7 @@ app.post('/user/create', (req, res) => {
     res.json(token)
 })
 
-app.get('/user/verify', (req, res) => {
-    console.log(req.params)
+app.post('/user/verify', (req, res) => {
     let token = dataEditor.validateLogin(req.body.username, req.body.password)
     if(!token) {
         res.json({
@@ -72,7 +71,7 @@ app.post('/token/refresh', (req, res) => {
     res.json(token)
 })
 
-app.get('/token/verify', (req, res) => {
+app.post('/token/verify', (req, res) => {
     let user = dataEditor.checkAuthToken(req.body.tokenId)
     if(!user || user.username != req.body.username) {
         res.json({
@@ -101,7 +100,7 @@ app.post('/account/create', (req, res) => {
     res.json(account)
 })
 
-app.get('/account/selectall', (req, res) => {
+app.post('/account/selectall', (req, res) => {
     let accountList = dataEditor.getAllAccountsForUser(req.body.username, req.body.tokenId)
     if(!accountList) {
         res.json({
@@ -115,7 +114,7 @@ app.get('/account/selectall', (req, res) => {
     })
 })
 
-app.get('/account/selectone', (req, res) => {
+app.post('/account/selectone', (req, res) => {
     let account = dataEditor.getAccount(
         req.body.username,
         req.body.tokenId,
