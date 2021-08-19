@@ -9,18 +9,19 @@ import SignupScreen from './components/SignupScreen'
 
 function App() {
   const [screen, setScreen] = useState('home')
-  console.log('here')
+  const [token, setToken] = useState({})
+  const [user, setUser] = useState({})
   switch(screen) {
     case 'dashboard':
-      return <DashboardScreen setScreen={setScreen} />
+      return <DashboardScreen setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} />
     case 'exchange':
-      return <ExchangeScreen setScreen={setScreen} />
+      return <ExchangeScreen setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} />
     case 'home':
       return <HomeScreen setScreen={setScreen} />
     case 'login':
-      return <LoginScreen setScreen={setScreen} />
+      return <LoginScreen setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} />
     case 'signup':
-      return <SignupScreen setScreen={setScreen} />
+      return <SignupScreen setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} />
     default:
       return <HomeScreen setScreen={setScreen} />
   }
