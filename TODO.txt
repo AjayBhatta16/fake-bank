@@ -1,6 +1,5 @@
 TODO:
 3. Fix password encryption and token cleanup
-6. Connect login and signup screens to API
 7. Design & implement dashboard screen
 8. Connect dashboard to API
 9. Design & implement exchange screen(s)
