@@ -1,4 +1,3 @@
-import logo from './logo.svg';
 import './App.css';
 import { useState } from 'react'
 import DashboardScreen from './components/DashboardScreen'
@@ -6,16 +5,24 @@ import ExchangeScreen from './components/ExchangeScreen'
 import HomeScreen from './components/HomeScreen'
 import LoginScreen from './components/LoginScreen'
 import SignupScreen from './components/SignupScreen'
+import env from './env'
 
 function App() {
   const [screen, setScreen] = useState('home')
   const [token, setToken] = useState({})
   const [user, setUser] = useState({})
+  document.title = env.bankName
   switch(screen) {
     case 'dashboard':
       return <DashboardScreen setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} />
-    case 'exchange':
-      return <ExchangeScreen setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} />
+    case 'add':
+      return <ExchangeScreen setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} type="add" />
+    case 'deposit':
+      return <ExchangeScreen setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} type="deposit" />
+    case 'withdraw':
+      return <ExchangeScreen setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} type="withdraw" />
+    case 'transfer':
+      return <ExchangeScreen setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} type="transfer" />
     case 'home':
       return <HomeScreen setScreen={setScreen} />
     case 'login':

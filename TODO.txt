@@ -1,6 +1,4 @@
 TODO:
 3. Fix password encryption and token cleanup
-7. Design & implement dashboard screen
-8. Connect dashboard to API
 9. Design & implement exchange screen(s)
 10. Connect exchange screen(s) to API

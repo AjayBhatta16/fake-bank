@@ -39,6 +39,14 @@ button {
     margin-top: 20vh;
 }
 
+.custom-wide {
+    padding: 10px;
+    margin: auto;
+    margin-top: 10vh;
+    max-width: 800px;
+    border-radius: 15px
+}
+
 .signup {
     margin-top: 5vh;
 }
