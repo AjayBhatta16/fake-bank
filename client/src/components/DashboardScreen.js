@@ -53,6 +53,7 @@ export default function DashboardScreen(props) {
                                     <Account 
                                         account={account} 
                                         setScreen={props.setScreen} 
+                                        setTarget={props.setTarget}
                                         handleDelete={handleDelete}
                                     />    
                                 ))

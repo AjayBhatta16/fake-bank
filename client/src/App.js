@@ -11,18 +11,19 @@ function App() {
   const [screen, setScreen] = useState('home')
   const [token, setToken] = useState({})
   const [user, setUser] = useState({})
+  const [targetAccount, setTargetAccount] = useState({})
   document.title = env.bankName
   switch(screen) {
     case 'dashboard':
-      return <DashboardScreen setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} />
+      return <DashboardScreen setTarget={setTargetAccount} setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} />
     case 'add':
-      return <ExchangeScreen setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} type="add" />
+      return <ExchangeScreen target={targetAccount} setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} type="add" />
     case 'deposit':
-      return <ExchangeScreen setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} type="deposit" />
+      return <ExchangeScreen target={targetAccount} setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} type="deposit" />
     case 'withdraw':
-      return <ExchangeScreen setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} type="withdraw" />
+      return <ExchangeScreen target={targetAccount} setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} type="withdraw" />
     case 'transfer':
-      return <ExchangeScreen setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} type="transfer" />
+      return <ExchangeScreen target={targetAccount} setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} type="transfer" />
     case 'home':
       return <HomeScreen setScreen={setScreen} />
     case 'login':

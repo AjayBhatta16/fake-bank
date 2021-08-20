@@ -3,6 +3,7 @@ import React from 'react'
 export default function Account(props) {
     const toCurrency = amount => '$' + amount.toFixed(2)
     const handleExchange = exchangeType => {
+        props.setTarget(props.account)
         props.setScreen(exchangeType)
     }
     return (
