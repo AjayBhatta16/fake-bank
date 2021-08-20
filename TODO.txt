@@ -1,4 +1,5 @@
 TODO:
 3. Fix password encryption and token cleanup
-9. Design & implement exchange screen(s)
 10. Connect exchange screen(s) to API
+11. Add external transfer functionality to front-end 
+12. Add auth token refresh for all actions 
