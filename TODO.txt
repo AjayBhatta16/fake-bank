@@ -1,5 +1,8 @@
 TODO:
 3. Fix password encryption and token cleanup
-10. Connect exchange screen(s) to API
 11. Add external transfer functionality to front-end 
 12. Add auth token refresh for all actions 
+13. Add transaction history feature
+14. Use API to update dashboard
+15. Fix: delete button not removing component from dashboard 
+16. Delete unused files
