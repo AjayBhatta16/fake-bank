@@ -5,4 +5,3 @@ TODO:
 13. Add transaction history feature
 14. Use API to update dashboard
 15. Fix: delete button not removing component from dashboard 
-16. Delete unused files

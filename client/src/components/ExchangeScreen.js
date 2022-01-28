@@ -5,8 +5,8 @@ import axios from 'axios'
 
 export default function ExchangeScreen(props) {
     const [errMsg, setErrMsg] = useState('')
-    const [toValue, setToValue] = useState(props.target.accountNumber.toString())
-    const [fromValue, setFromValue] = useState(props.target.accountNumber.toString())
+    const [toValue, setToValue] = useState(props.target.accountNumber ? props.target.accountNumber.toString() : null)
+    const [fromValue, setFromValue] = useState(props.target.accountNumber ? props.target.accountNumber.toString() : null)
     const amountRef = useRef(null)
     const typeRef = useRef(null)
     const stopRedirect = event => event.preventDefault()

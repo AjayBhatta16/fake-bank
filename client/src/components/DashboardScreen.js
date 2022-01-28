@@ -19,9 +19,9 @@ export default function DashboardScreen(props) {
         }).then(res => {
             if(res.data.accountDeleted) {
                 setSuccessMsg('Account deleted successfully')
-                props.user.accounts = props.user.accounts.filter(bankAccount => bankAccount.accountNumber == account.accountNumber)
+                props.user.accounts = props.user.accounts.filter(bankAccount => bankAccount.accountNumber != account.accountNumber)
                 props.setUser(props.user)
-                setDashboardUser(props.user)
+                setDashboardUser({...props.user})
             } else {
                 setErrMsg('An unknown error has occurred')
             }
