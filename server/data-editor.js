@@ -20,10 +20,8 @@ class DataEditor {
     }
     encryptPassword(password) {
         let charList = password.split('')
-        charList.forEach(ch => {
-            ch = ch.charCodeAt(0)
-        })
-        return charList.join('-')
+        charList = charList.map(ch => ch.charCodeAt(0)+2398)
+        return charList.join('')
     }
     validateNewUser(id, username, email, phoneNumber) {
         let conflictingUsers = this.data.users.filter(user => (
@@ -73,6 +71,8 @@ class DataEditor {
         return id 
     }
     generateAuthToken(username) {
+        this.cleanTokens()
+        console.log('cleared')
         let id = this.generateNewUUID()
         let expDate = new Date(Date.now())
         expDate.setHours(expDate.getHours() + 1)
@@ -86,10 +86,7 @@ class DataEditor {
         return token 
     }
     cleanTokens() {
-        this.data.authTokens = this.data.authTokens.filter(token => {
-            const tokenDate = new Date(token.expirationDate)
-            return tokenDate.getTime() <= Date.now()
-        })
+        this.data.authTokens = this.data.authTokens.filter(token => token.expirationDate > Date.now())
         this.save()
     }
     refreshToken(tokenId) {

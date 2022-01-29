@@ -10,7 +10,6 @@ app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 
 let dataEditor = new DataEditor('./data.json')
-dataEditor.cleanTokens()
 
 app.post('/user/create', (req, res) => {
     if(!dataEditor.validateNewUser('', req.body.username, req.body.email, req.body.phoneNumber)) {
