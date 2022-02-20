@@ -1,6 +1,6 @@
 const env = {
-    endpoint: 'http://localhost:3001',
-    bankName: '[Insert bank name here]',
-    bankSlogan: '[Insert bank slogan here]'
+    endpoint: 'https://fakebank.ajaybhatta49.repl.co',
+    bankName: 'Mike Oxlong Federal Credit Union',
+    bankSlogan: 'Banking can be a dick sometimes'
 }
 export default env 

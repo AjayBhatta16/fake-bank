@@ -10,3 +10,6 @@ A full-stack template for creating your own fake bank website (intended for educ
 
 
 DISCLAIMER: this app has nothing to do with real money, and shouldn't be modified to do so without proper security improvements
+
+# live demo:
+https://mikeoxlongbanking.firebaseapp.com
