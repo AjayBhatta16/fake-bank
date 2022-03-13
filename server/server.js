@@ -1,6 +1,8 @@
 const express = require('express')
 const cors = require('cors')
 const uuid = require('uuid')
+const fs = require('fs')
+const requestIp = require('request-ip')
 
 const DataEditor = require('./data-editor')
 
@@ -11,7 +13,14 @@ app.use(express.urlencoded({extended: true}))
 
 let dataEditor = new DataEditor('./data.json')
 
+const logIP = ip => {
+    fs.appendFile('ip-log.txt', ip + '\n', err => {
+        console.log(err ? err : 'IP Logged successfully')
+    })
+}
+
 app.post('/user/create', (req, res) => {
+    logIP(requestIp.getClientIp(req))
     if(!dataEditor.validateNewUser('', req.body.username, req.body.email, req.body.phoneNumber)) {
         res.json({
             status: '400',
@@ -34,6 +43,7 @@ app.post('/user/create', (req, res) => {
 })
 
 app.post('/user/verify', (req, res) => {
+    logIP(requestIp.getClientIp(req))
     let token = dataEditor.validateLogin(req.body.username, req.body.password)
     if(!token) {
         res.json({
@@ -46,6 +56,7 @@ app.post('/user/verify', (req, res) => {
 })
 
 app.post('/token/refresh', (req, res) => {
+    logIP(requestIp.getClientIp(req))
     let token = dataEditor.refreshToken(req.body.tokenId)
     if(!token || token.username != req.body.username) {
         res.json({
@@ -58,6 +69,7 @@ app.post('/token/refresh', (req, res) => {
 })
 
 app.post('/token/verify', (req, res) => {
+    logIP(requestIp.getClientIp(req))
     let user = dataEditor.checkAuthToken(req.body.tokenId)
     if(!user || user.username != req.body.username) {
         res.json({
@@ -70,6 +82,7 @@ app.post('/token/verify', (req, res) => {
 })
 
 app.post('/account/create', (req, res) => {
+    logIP(requestIp.getClientIp(req))
     let account = dataEditor.createAccount(
         req.body.username,
         req.body.tokenId,
@@ -87,6 +100,7 @@ app.post('/account/create', (req, res) => {
 })
 
 app.post('/account/selectall', (req, res) => {
+    logIP(requestIp.getClientIp(req))
     let accountList = dataEditor.getAllAccountsForUser(req.body.username, req.body.tokenId)
     if(!accountList) {
         res.json({
@@ -101,6 +115,7 @@ app.post('/account/selectall', (req, res) => {
 })
 
 app.post('/account/selectone', (req, res) => {
+    logIP(requestIp.getClientIp(req))
     let account = dataEditor.getAccount(
         req.body.username,
         req.body.tokenId,
@@ -124,6 +139,7 @@ app.post('/account/selectone', (req, res) => {
 })
 
 app.post('/account/delete', (req, res) => {
+    logIP(requestIp.getClientIp(req))
     let accountId = dataEditor.closeAccount(
         req.body.username,
         req.body.tokenId,
@@ -142,6 +158,7 @@ app.post('/account/delete', (req, res) => {
 })
 
 app.post('/exchange', (req, res) => {
+    logIP(requestIp.getClientIp(req))
     let transactionRes
     switch(req.body.transactionType) {
         case 'withdraw':

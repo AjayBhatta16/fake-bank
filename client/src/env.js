@@ -1,5 +1,5 @@
 const env = {
-    endpoint: 'https://fakebank.ajaybhatta49.repl.co',
+    endpoint: 'http://localhost:3001',
     bankName: 'Mike Oxlong Federal Credit Union',
     bankSlogan: 'Banking can be a dick sometimes'
 }
