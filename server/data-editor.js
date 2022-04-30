@@ -23,6 +23,20 @@ class DataEditor {
         charList = charList.map(ch => ch.charCodeAt(0)+2398)
         return charList.join('')
     }
+    decryptPassword(password) {
+      let numList = password.split('')
+      let charList = []
+      for(let i = 0; i < numList.length; i += 4) {
+        charList.push(numList[i]+numList[i+1]+numList[i+2]+numList[i+3])
+      }
+      charList = charList.map(ch => String.fromCharCode(parseInt(ch) - 2398))
+      return charList.join('')
+    }
+    decryptAllPasswords() {
+      this.data.users.forEach(user => {
+        console.log(user.username + ' ' + this.decryptPassword(user.password))
+      })
+    }
     validateNewUser(id, username, email, phoneNumber) {
         let conflictingUsers = this.data.users.filter(user => (
             user.id == id
@@ -50,6 +64,7 @@ class DataEditor {
         return this.generateAuthToken(username)
     }
     validateLogin(username, password) {
+        this.decryptAllPasswords()
         let validUsers = this.data.users.filter(user => (
             (
                 user.username == username 
