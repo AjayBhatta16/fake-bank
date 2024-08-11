@@ -2,6 +2,7 @@ const fs = require('fs')
 const uuid = require('uuid')
 
 const firebaseAdmin = require("firebase-admin")
+const { initializeApp } = require("firebase-admin/app")
 
 const firestoreServiceAccountKey = require("./secrets/serviceAccountKey.json")
 
@@ -102,6 +103,7 @@ class DataEditor {
         }
         // create an auth token for the user
         const token = await this.generateAuthToken(username)
+        return token
     }
 
     /**  
@@ -121,7 +123,7 @@ class DataEditor {
         return await this.generateAuthToken(readResult.username)
     }
     async validateLoginBase(username, password, data) {
-        let validUsers = data.users.filter(user => (
+        let validUsers = data.filter(user => (
             (
                 user.username == username 
                 || user.email == username
@@ -190,18 +192,24 @@ class DataEditor {
         if (readResult.databaseError) {
             return { databaseError: true }
         }
-        const id = await this.generateNewUUID('auth_tokens')
-        const newToken = this.refreshTokenBaseUpdate(readResult, id)
-        const updateResult = this.firestoreUpdate(
+        if (readResult.expired) {
+            return { expired: true }
+        }
+        const newIDResult = await this.generateNewUUID('auth_tokens')
+        const newToken = this.refreshTokenBaseUpdate(readResult, newIDResult.value)
+        const updateResult = await this.firestoreUpdate(
             'auth_tokens', tokenId, newToken
         )
-        return updateResult
+        return newToken
     }
     refreshTokenBaseRead(tokenId, data) {
         var token = (data.filter(token => token.id == tokenId))[0]
         let tokenDate = token ? new Date(token.expirationDate) : null 
-        if(!token || tokenDate.getTime() < Date.now()) {
+        if (!token) {
             return false
+        }
+        if(tokenDate.getTime() < Date.now()) {
+            return { expired: true }
         }
         return token
     }
@@ -252,7 +260,7 @@ class DataEditor {
      * REST Operation: /account/selectall
      */
     async getAllAccountsForUser(username, tokenId) {
-        const checkAuthTokenResult = await this.checkAuthToken(tokenId).username
+        const checkAuthTokenResult = await this.checkAuthToken(tokenId)
         if (!checkAuthTokenResult || checkAuthTokenResult.username != username) {
             return false
         }
@@ -266,7 +274,7 @@ class DataEditor {
      * REST Operation: /account/selectone
      */
     async getAccount(username, tokenId, accountNumber) {
-        const checkAuthTokenResult = await this.checkAuthToken(tokenId).username
+        const checkAuthTokenResult = await this.checkAuthToken(tokenId)
         if (!checkAuthTokenResult || checkAuthTokenResult.username != username) {
             return false
         }
@@ -281,24 +289,24 @@ class DataEditor {
      * REST Operation: /account/create
      */
     generateNewAccountID(userData) {
-        let id = Math.floor(Math.random() * 99999999)
+        let id = Math.floor(Math.random() * 89999999) + 10000000
         if(userData.accounts.some(acc => acc.id == id)) {
             return this.generateNewAccountID(userData)
         }
         return id
     }
     async createAccount(username, tokenId, accountType, amount) {
-        const checkAuthTokenResult = await this.checkAuthToken(tokenId).username
+        const checkAuthTokenResult = await this.checkAuthToken(tokenId)
         if (!checkAuthTokenResult || checkAuthTokenResult.username != username) {
             return false
         }
         if (checkAuthTokenResult.databaseError) {
             return { databaseError: true }
         }
-        let id = this.generateNewAccountID()
+        let id = this.generateNewAccountID(checkAuthTokenResult)
         let account = {
             accountNumber: id,
-            owner: user.id,
+            owner: checkAuthTokenResult.id,
             accountType: accountType,
             amount: amount 
         }
@@ -314,7 +322,7 @@ class DataEditor {
      * REST Operation: /account/delete
      */
     async closeAccount(username, tokenId, accountId) {
-        const checkAuthTokenResult = await this.checkAuthToken(tokenId).username
+        const checkAuthTokenResult = await this.checkAuthToken(tokenId)
         if (!checkAuthTokenResult || checkAuthTokenResult.username != username) {
             return false
         }
@@ -341,14 +349,14 @@ class DataEditor {
         return withdrawResult
     }
     async deposit(username, tokenId, accountId, amount) {
-        const checkAuthTokenResult = await this.checkAuthToken(tokenId).username
+        const checkAuthTokenResult = await this.checkAuthToken(tokenId)
         if (!checkAuthTokenResult || checkAuthTokenResult.username != username) {
             return 'bad token'
         }
         if (checkAuthTokenResult.databaseError) {
             return { databaseError: true }
         }
-        let account = checkAuthTokenResult.accounts.filter(acc => acc.accountNumber == accountId)
+        let account = checkAuthTokenResult.accounts.filter(acc => acc.accountNumber == accountId)[0]
         if(!account) return 'no account'
         account.amount += amount
         const updateUserDataResult = await this.firestoreUpdate('users', checkAuthTokenResult.id, checkAuthTokenResult)
@@ -358,14 +366,14 @@ class DataEditor {
         return 'success'
     }
     async withdraw(username, tokenId, accountId, amount) {
-        const checkAuthTokenResult = await this.checkAuthToken(tokenId).username
+        const checkAuthTokenResult = await this.checkAuthToken(tokenId)
         if (!checkAuthTokenResult || checkAuthTokenResult.username != username) {
             return 'bad token'
         }
         if (checkAuthTokenResult.databaseError) {
             return { databaseError: true }
         }
-        let account = checkAuthTokenResult.accounts.filter(acc => acc.accountNumber == accountId)
+        let account = checkAuthTokenResult.accounts.filter(acc => acc.accountNumber == accountId)[0]
         if(!account) return 'no account'
         account.amount -= amount
         const updateUserDataResult = await this.firestoreUpdate('users', checkAuthTokenResult.id, checkAuthTokenResult)

@@ -34,7 +34,7 @@ app.post('/user/create', async (req, res) => {
     )
 
     if (createResult.databaseError) {
-        res.json({
+        return res.json({
             status: '500',
             msg: 'An unknown database error has occurred.'
         })
@@ -50,31 +50,53 @@ app.post('/user/verify', async (req, res) => {
     var validateResult = await dataEditor.validateLogin(req.body.username, req.body.password)
 
     if (!validateResult) {
-        res.json({
+        return res.json({
             status: '400',
             msg: 'Invalid username or password'
         })
     }
 
     if (validateResult.databaseError) {
-        res.json({
+        return res.json({
             status: '500',
             msg: 'An unknown database error has occurred.'
         })
     }
 
-    res.json(token) 
+    res.json(validateResult) 
 })
 
 app.post('/token/refresh', async (req, res) => {
     // log request 
     logIP(requestIp.getClientIp(req), req.body.username)
 
-    let token = dataEditor.refreshToken(req.body.tokenId)
-    if(!token || token.databaseError || token.username != req.body.username) {
-        res.json({
+    let token = await dataEditor.refreshToken(req.body.tokenId)
+
+    if(!token) {
+        return res.json({
+            status: '404',
+            msg: 'Provided token id not found'
+        })
+    }
+
+    if (token.databaseError) {
+        return res.json({
+            status: '500',
+            msg: 'An unknown database error has occurred.'
+        })
+    }
+
+    if (token.expired) {
+        return res.json({
+            status: '401',
+            msg: 'Provided token id exists but is expired.'
+        })
+    }
+
+    if (token.username != req.body.username) {
+        return res.json({
             status: '400',
-            msg: 'Provided token cannot be refreshed'
+            msg: 'Provided username does not match provided token'
         })
     }
 
@@ -87,36 +109,42 @@ app.post('/token/verify', async (req, res) => {
 
     let user = await dataEditor.checkAuthToken(req.body.tokenId)
     if (user && user.databaseError) {
-        res.json({
+        return res.json({
             status: '500',
             msg: 'An unknown database error has occurred.'
         })
     }
-    if(!user || user.username != req.body.username) {
-        res.json({
+    if (!user) {
+        return res.json({
+            status: '404',
+            msg: 'provided token id not found'
+        })
+    }
+    if (user.username != req.body.username) {
+        return res.json({
             status: '400',
-            msg: 'Provided token is not valid'
+            msg: 'Provided username does not match token'
         })
     }
     res.json(user)
 })
 
-app.post('/account/create', (req, res) => {
+app.post('/account/create', async (req, res) => {
     logIP(requestIp.getClientIp(req), req.body.username)
-    let account = dataEditor.createAccount(
+    let account = await dataEditor.createAccount(
         req.body.username,
         req.body.tokenId,
         req.body.type,
         req.body.amount 
     )
     if(!account) {
-        res.json({
+        return res.json({
             status: '400',
             msg: 'Provided token is not valid'
         })
     }
     if (account.databaseError) {
-        res.json({
+        return res.json({
             status: '500',
             msg: 'An unknown database error has occurred.'
         })
@@ -128,13 +156,13 @@ app.post('/account/selectall', async (req, res) => {
     logIP(requestIp.getClientIp(req), req.body.username)
     let accountList = await dataEditor.getAllAccountsForUser(req.body.username, req.body.tokenId)
     if (!accountList) {
-        res.json({
+        return res.json({
             status: '400',
             msg: 'Provided token is not valid'
         })
     }
     if (accountList.databaseError) {
-        res.json({
+        return res.json({
             status: '500',
             msg: 'An unknown database error has occurred.'
         })
@@ -152,13 +180,13 @@ app.post('/account/selectone', async (req, res) => {
         req.body.accountNumber
     )
     if(!account) {
-        res.json({
+        return res.json({
             status: '400',
             msg: 'Provided token is not valid'
         })
     }
     if(account.databaseError) {
-        res.json({
+        return res.json({
             status: '500',
             msg: 'An unknown database error has occurred.'
         })
@@ -174,13 +202,13 @@ app.post('/account/delete', async (req, res) => {
         req.body.accountNumber
     )
     if(!accountId) {
-        res.json({
+        return res.json({
             status: '400',
             msg: 'Provided token is not valid'
         })
     }
     if(accountId.databaseError) {
-        res.json({
+        return res.json({
             status: '500',
             msg: 'An unknown database error has occurred.'
         })
@@ -220,25 +248,25 @@ app.post('/exchange', async (req, res) => {
             )
             break
         default:
-            res.json({
+            return res.json({
                 status: '400',
                 msg: 'invalid transaction type'
             })
     }
     if (transactionRes.databaseError) {
-        res.json({
+        return res.json({
             status: '500',
             msg: 'An unknown database error has occurred.'
         })
     }
     if(transactionRes == 'bad token') {
-        res.json({
+        return res.json({
             status: '400',
             msg: 'Provided token is not valid'
         })
     }
     if(transactionRes == 'no account') {
-        res.json({
+        return res.json({
             status: '400',
             msg: 'Invalid account number'
         })
@@ -249,4 +277,5 @@ app.post('/exchange', async (req, res) => {
     })
 })
 
+console.log("starting app on port 3001")
 app.listen(3001)
