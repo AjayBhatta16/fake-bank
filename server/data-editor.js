@@ -46,6 +46,7 @@ class DataEditor {
             snapshot.forEach(async (doc) => {
                 await doc.ref.update(newData);
             });
+            return true 
         } catch (error) {
             console.log(error)
             return { databaseError: true }
@@ -244,102 +245,133 @@ class DataEditor {
         return token 
     }
     checkAuthTokenUser(username, data) {
-        return data.filter(user => user.username == username)
+        return data.filter(user => user.username == username)[0]
     }
 
     /**  
      * REST Operation: /account/selectall
      */
-    getAllAccountsForUser(username, tokenId) {
-        if(this.checkAuthToken(tokenId).username != username) {
+    async getAllAccountsForUser(username, tokenId) {
+        const checkAuthTokenResult = await this.checkAuthToken(tokenId).username
+        if (!checkAuthTokenResult || checkAuthTokenResult.username != username) {
             return false
         }
-        return (this.data.users.filter(user => user.username == username))[0].accounts
+        if (checkAuthTokenResult.databaseError) {
+            return { databaseError: true }
+        }
+        return checkAuthTokenResult.accounts
     }
 
     /**  
      * REST Operation: /account/selectone
      */
-    getAccount(username, tokenId, accountNumber) {
-        if(this.checkAuthToken(tokenId).username != username) {
+    async getAccount(username, tokenId, accountNumber) {
+        const checkAuthTokenResult = await this.checkAuthToken(tokenId).username
+        if (!checkAuthTokenResult || checkAuthTokenResult.username != username) {
             return false
         }
-        let user = this.data.users.filter(user => user.username == username)[0]
-        let account = user.accounts.filter(acc => acc.accountNumber == accountNumber)[0]
-        return account ? account : {}
+        if (checkAuthTokenResult.databaseError) {
+            return { databaseError: true }
+        }
+        let account = checkAuthTokenResult.accounts.filter(acc => acc.accountNumber == accountNumber)[0]
+        return account ? account : false
     }
 
     /**  
      * REST Operation: /account/create
      */
-    validateNewAccount(username, id) {
-        let user = this.data.users.filter(user => user.username == username)[0]
-        return !user.accounts.some(acc => acc.id == id)
-    }
-    createAccount(username, tokenId, accountType, amount) {
-        if(this.checkAuthToken(tokenId).username != username) {
-            return false 
-        }
+    generateNewAccountID(userData) {
         let id = Math.floor(Math.random() * 99999999)
-        if(!this.validateNewAccount(username, id)) {
-            return this.createAccount(username, tokenId, accountType, amount)
+        if(userData.accounts.some(acc => acc.id == id)) {
+            return this.generateNewAccountID(userData)
         }
-        let user = this.data.users.filter(user => user.username == username)[0]
+        return id
+    }
+    async createAccount(username, tokenId, accountType, amount) {
+        const checkAuthTokenResult = await this.checkAuthToken(tokenId).username
+        if (!checkAuthTokenResult || checkAuthTokenResult.username != username) {
+            return false
+        }
+        if (checkAuthTokenResult.databaseError) {
+            return { databaseError: true }
+        }
+        let id = this.generateNewAccountID()
         let account = {
             accountNumber: id,
             owner: user.id,
             accountType: accountType,
             amount: amount 
         }
-        user.accounts.push(account)
-        this.save()
+        checkAuthTokenResult.accounts.push(account)
+        const updateUserDataResult = await this.firestoreUpdate('users', checkAuthTokenResult.id, checkAuthTokenResult)
+        if (!updateUserDataResult || updateUserDataResult.databaseError) {
+            return { databaseError: true }
+        }
         return account 
     }
 
     /**  
      * REST Operation: /account/delete
      */
-    closeAccount(username, tokenId, accountId) {
-        if(this.checkAuthToken(tokenId).username != username) {
+    async closeAccount(username, tokenId, accountId) {
+        const checkAuthTokenResult = await this.checkAuthToken(tokenId).username
+        if (!checkAuthTokenResult || checkAuthTokenResult.username != username) {
             return false
         }
-        let user = this.data.users.filter(user => user.username == username)[0]
-        user.accounts = user.accounts.filter(acc => acc.accountNumber != accountId)
-        this.save()
+        if (checkAuthTokenResult.databaseError) {
+            return { databaseError: true }
+        }
+        checkAuthTokenResult.accounts = checkAuthTokenResult.accounts.filter(acc => acc.accountNumber != accountId)
+        const updateUserDataResult = await this.firestoreUpdate('users', checkAuthTokenResult.id, checkAuthTokenResult)
+        if (!updateUserDataResult || updateUserDataResult.databaseError) {
+            return { databaseError: true }
+        }
         return accountId
     }
 
     /**  
      * REST Operation: /exchange
      */
-    transfer(username, tokenId, fromAccountId, toAccountId, amount) {
-        if(this.checkAuthToken(tokenId).username != username) {
-            return 'bad token'
+    async transfer(username, tokenId, fromAccountId, toAccountId, amount) {
+        const withdrawResult = await this.withdraw(username, tokenId, fromAccountId, amount)
+        const depositResult = await this.deposit(username, tokenId, toAccountId, amount) 
+        if (withdrawResult.databaseError || depositResult.databaseError) {
+            return { databaseError: true }
         }
-        let returnMsg = this.withdraw(username, tokenId, fromAccountId, amount)
-        this.deposit(username, tokenId, toAccountId, amount) 
-        return returnMsg
+        return withdrawResult
     }
-    deposit(username, tokenId, accountId, amount) {
-        if(this.checkAuthToken(tokenId).username != username) {
+    async deposit(username, tokenId, accountId, amount) {
+        const checkAuthTokenResult = await this.checkAuthToken(tokenId).username
+        if (!checkAuthTokenResult || checkAuthTokenResult.username != username) {
             return 'bad token'
         }
-        let user = this.data.users.filter(user => user.username == username)[0]
-        let account = user.accounts.filter(acc => acc.accountNumber == accountId)[0]
+        if (checkAuthTokenResult.databaseError) {
+            return { databaseError: true }
+        }
+        let account = checkAuthTokenResult.accounts.filter(acc => acc.accountNumber == accountId)
         if(!account) return 'no account'
         account.amount += amount
-        this.save()
+        const updateUserDataResult = await this.firestoreUpdate('users', checkAuthTokenResult.id, checkAuthTokenResult)
+        if (!updateUserDataResult || updateUserDataResult.databaseError) {
+            return { databaseError: true }
+        }
         return 'success'
     }
-    withdraw(username, tokenId, accountId, amount) {
-        if(this.checkAuthToken(tokenId).username != username) {
+    async withdraw(username, tokenId, accountId, amount) {
+        const checkAuthTokenResult = await this.checkAuthToken(tokenId).username
+        if (!checkAuthTokenResult || checkAuthTokenResult.username != username) {
             return 'bad token'
         }
-        let user = this.data.users.filter(user => user.username == username)[0]
-        let account = user.accounts.filter(acc => acc.accountNumber == accountId)[0]
+        if (checkAuthTokenResult.databaseError) {
+            return { databaseError: true }
+        }
+        let account = checkAuthTokenResult.accounts.filter(acc => acc.accountNumber == accountId)
         if(!account) return 'no account'
         account.amount -= amount
-        this.save()
+        const updateUserDataResult = await this.firestoreUpdate('users', checkAuthTokenResult.id, checkAuthTokenResult)
+        if (!updateUserDataResult || updateUserDataResult.databaseError) {
+            return { databaseError: true }
+        }
         return 'success'
     }
 }

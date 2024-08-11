@@ -38,7 +38,6 @@ app.post('/user/create', async (req, res) => {
             status: '500',
             msg: 'An unknown database error has occurred.'
         })
-        return
     }
 
     res.json(createResult)
@@ -55,7 +54,6 @@ app.post('/user/verify', async (req, res) => {
             status: '400',
             msg: 'Invalid username or password'
         })
-        return 
     }
 
     if (validateResult.databaseError) {
@@ -63,7 +61,6 @@ app.post('/user/verify', async (req, res) => {
             status: '500',
             msg: 'An unknown database error has occurred.'
         })
-        return
     }
 
     res.json(token) 
@@ -79,7 +76,6 @@ app.post('/token/refresh', async (req, res) => {
             status: '400',
             msg: 'Provided token cannot be refreshed'
         })
-        return 
     }
 
     res.json(token)
@@ -95,14 +91,12 @@ app.post('/token/verify', async (req, res) => {
             status: '500',
             msg: 'An unknown database error has occurred.'
         })
-        return 
     }
     if(!user || user.username != req.body.username) {
         res.json({
             status: '400',
             msg: 'Provided token is not valid'
         })
-        return 
     }
     res.json(user)
 })
@@ -120,29 +114,39 @@ app.post('/account/create', (req, res) => {
             status: '400',
             msg: 'Provided token is not valid'
         })
-        return
+    }
+    if (account.databaseError) {
+        res.json({
+            status: '500',
+            msg: 'An unknown database error has occurred.'
+        })
     }
     res.json(account)
 })
 
-app.post('/account/selectall', (req, res) => {
+app.post('/account/selectall', async (req, res) => {
     logIP(requestIp.getClientIp(req), req.body.username)
-    let accountList = dataEditor.getAllAccountsForUser(req.body.username, req.body.tokenId)
-    if(!accountList) {
+    let accountList = await dataEditor.getAllAccountsForUser(req.body.username, req.body.tokenId)
+    if (!accountList) {
         res.json({
             status: '400',
             msg: 'Provided token is not valid'
         })
-        return
+    }
+    if (accountList.databaseError) {
+        res.json({
+            status: '500',
+            msg: 'An unknown database error has occurred.'
+        })
     }
     res.json({
         data: accountList 
     })
 })
 
-app.post('/account/selectone', (req, res) => {
+app.post('/account/selectone', async (req, res) => {
     logIP(requestIp.getClientIp(req), req.body.username)
-    let account = dataEditor.getAccount(
+    let account = await dataEditor.getAccount(
         req.body.username,
         req.body.tokenId,
         req.body.accountNumber
@@ -152,21 +156,19 @@ app.post('/account/selectone', (req, res) => {
             status: '400',
             msg: 'Provided token is not valid'
         })
-        return 
     }
-    if(!account.accountNumber) {
+    if(account.databaseError) {
         res.json({
-            status: '400',
-            msg: 'Account does not exist'
+            status: '500',
+            msg: 'An unknown database error has occurred.'
         })
-        return 
     }
     res.json(account)
 })
 
-app.post('/account/delete', (req, res) => {
+app.post('/account/delete', async (req, res) => {
     logIP(requestIp.getClientIp(req), req.body.username)
-    let accountId = dataEditor.closeAccount(
+    let accountId = await dataEditor.closeAccount(
         req.body.username,
         req.body.tokenId,
         req.body.accountNumber
@@ -176,19 +178,24 @@ app.post('/account/delete', (req, res) => {
             status: '400',
             msg: 'Provided token is not valid'
         })
-        return 
+    }
+    if(accountId.databaseError) {
+        res.json({
+            status: '500',
+            msg: 'An unknown database error has occurred.'
+        })
     }
     res.json({
         accountDeleted: accountId
     })
 })
 
-app.post('/exchange', (req, res) => {
+app.post('/exchange', async (req, res) => {
     logIP(requestIp.getClientIp(req), req.body.username)
     let transactionRes
     switch(req.body.transactionType) {
         case 'withdraw':
-            transactionRes = dataEditor.withdraw(
+            transactionRes = await dataEditor.withdraw(
                 req.body.username,
                 req.body.tokenId,
                 req.body.from,
@@ -196,7 +203,7 @@ app.post('/exchange', (req, res) => {
             )
             break
         case 'deposit':
-            transactionRes = dataEditor.deposit(
+            transactionRes = await dataEditor.deposit(
                 req.body.username,
                 req.body.tokenId,
                 req.body.to,
@@ -204,7 +211,7 @@ app.post('/exchange', (req, res) => {
             )
             break
         case 'transfer':
-            transactionRes = dataEditor.transfer(
+            transactionRes = await dataEditor.transfer(
                 req.body.username,
                 req.body.tokenId,
                 req.body.from,
@@ -217,21 +224,24 @@ app.post('/exchange', (req, res) => {
                 status: '400',
                 msg: 'invalid transaction type'
             })
-            return 
+    }
+    if (transactionRes.databaseError) {
+        res.json({
+            status: '500',
+            msg: 'An unknown database error has occurred.'
+        })
     }
     if(transactionRes == 'bad token') {
         res.json({
             status: '400',
             msg: 'Provided token is not valid'
         })
-        return 
     }
     if(transactionRes == 'no account') {
         res.json({
             status: '400',
             msg: 'Invalid account number'
         })
-        return 
     }
     res.json({
         status: '200',
