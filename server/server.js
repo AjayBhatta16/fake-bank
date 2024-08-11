@@ -277,5 +277,7 @@ app.post('/exchange', async (req, res) => {
     })
 })
 
-console.log("starting app on port 3001")
-app.listen(3001)
+const PORT = process.env.PORT | 3001
+app.listen(PORT, () => {
+    console.log(`Process listening on port ${PORT}`)
+})
