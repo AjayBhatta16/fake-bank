@@ -30,7 +30,8 @@ export default function DashboardScreen(props) {
             console.log(error)
         })
     }
-    const [firstName, lastName] = props.user.fullName.split(' ')
+    const firstName = props.user.fullName.split(' ')[0]
+    const lastName = props.user.fullName.split(' ').slice(1).join(' ')
     return (
         <StandardContainer>
             <div className="custom-wide bg-dark">
