@@ -1,137 +1,265 @@
 const fs = require('fs')
 const uuid = require('uuid')
 
+const firebaseAdmin = require("firebase-admin")
+
+const firestoreServiceAccountKey = require("./secrets/serviceAccountKey.json")
+
 class DataEditor {
-    constructor(dataFile) {
-        this.dataFile = dataFile
-        this.data = ''
-        this.openDataFile()
+    // initialization
+    constructor() {
+        this.initFirestore()
     }
-    openDataFile() {
-        fs.readFile(this.dataFile, (err, data) => {
-            if(err) throw err
-            this.data = JSON.parse(data)
+    initFirestore() {
+        initializeApp({
+            credential: firebaseAdmin.credential.cert(firestoreServiceAccountKey),
         })
+        this.db = firebaseAdmin.firestore()
     }
-    save() {
-        fs.writeFile(this.dataFile, JSON.stringify(this.data), err => {
-            if(err) console.log(err)
-        })
+
+    // firestore CRUD handlers
+    async firestoreCreate(collectionName, data, callback) {
+        try {
+            const docRef = await this.db.collection(collectionName).add(data)
+            return callback(data)
+        } catch (error) {
+            console.log(error)
+            return { databaseError: true }
+        }
     }
-    encryptPassword(password) {
-        let charList = password.split('')
-        charList = charList.map(ch => ch.charCodeAt(0)+2398)
-        return charList.join('')
+    async firestoreRead(collectionName, callback) {
+        try {
+            const snapshot = await this.db.collection(collectionName).get()
+            const data = snapshot.docs.map(doc => doc.data())
+            return callback(data)
+        } catch (error) {
+            console.log(error)
+            return { databaseError: true }
+        }
     }
-    decryptPassword(password) {
-      let numList = password.split('')
-      let charList = []
-      for(let i = 0; i < numList.length; i += 4) {
-        charList.push(numList[i]+numList[i+1]+numList[i+2]+numList[i+3])
-      }
-      charList = charList.map(ch => String.fromCharCode(parseInt(ch) - 2398))
-      return charList.join('')
+    async firestoreUpdate(collectionName, id, newData) {
+        try {
+            const snapshot = await this.db.collection(collectionName).where('id', '==', id).get()
+            if (snapshot.empty) {
+                return false 
+            }
+            snapshot.forEach(async (doc) => {
+                await doc.ref.update(newData);
+            });
+        } catch (error) {
+            console.log(error)
+            return { databaseError: true }
+        }
     }
-    decryptAllPasswords() {
-      this.data.users.forEach(user => {
-        console.log(user.username + ' ' + this.decryptPassword(user.password))
-      })
+
+    /** 
+     * REST Operation: POST /account/create
+    */
+    async validateNewUser(username, email, phoneNumber) {
+        return await this.firestoreRead(
+            'users',
+            data => this.validateNewUserBase(username, email, phoneNumber, data)
+        )
     }
-    validateNewUser(id, username, email, phoneNumber) {
-        let conflictingUsers = this.data.users.filter(user => (
-            user.id == id
-            || user.username == username
+    validateNewUserBase(username, email, phoneNumber, data) {
+        let conflictingUsers = data.filter(user => (
+            user.username == username
             || user.email == email
             || user.phoneNumber == phoneNumber
         ))
         return conflictingUsers.length == 0
     }
-    createUser(id, username, fullName, password, email, phoneNumber) {
-        if(!this.validateNewUser(id, username, email, phoneNumber)) {
-            return false 
+    async createUser(username, fullName, password, email, phoneNumber) {
+        // validate data uniqueness
+        const validateResult = await this.validateNewUser(username, email, phoneNumber)
+        if (!validateResult) {
+            return {
+                errorMessage: "An account with this username, email, or phone number already exists."
+            } 
         }
+        if (validateResult.databaseError) {
+            return { databaseError: true }
+        }
+        // generate ID
+        const newIDResult = await this.generateNewUUID('users')
+        if (newIDResult.databaseError) {
+            return { databaseError: true }
+        }
+        // create new data
         let userObj = {
-            id: id,
+            id: newIDResult.value,
             username: username,
             fullName: fullName,
-            password: this.encryptPassword(password),
+            password: password,
             email: email,
             phoneNumber: phoneNumber,
             accounts: []
         }
-        this.data.users.push(userObj)
-        this.save()
-        return this.generateAuthToken(username)
+        const createResult = await this.firestoreCreate('users', userObj, data => data)
+        if (createResult.databaseError) {
+            return { databaseError: true } 
+        }
+        // create an auth token for the user
+        const token = await this.generateAuthToken(username)
     }
-    validateLogin(username, password) {
-        this.decryptAllPasswords()
-        let validUsers = this.data.users.filter(user => (
+
+    /**  
+     * REST Operation: /user/verify
+     */
+    async validateLogin(username, password) {
+        const readResult = await this.firestoreRead(
+            'users',
+            async (data) => await this.validateLoginBase(username, password, data)
+        )
+        if (readResult === undefined) {
+            return false 
+        }
+        if (readResult.databaseError) {
+            return { databaseError: true }
+        }
+        return await this.generateAuthToken(readResult.username)
+    }
+    async validateLoginBase(username, password, data) {
+        let validUsers = data.users.filter(user => (
             (
                 user.username == username 
                 || user.email == username
                 || user.phoneNumber == username
             )
-            && user.password == this.encryptPassword(password)
+            && user.password == password
         ))
-        return validUsers[0] ? this.generateAuthToken(validUsers[0].username) : false
+        return validUsers[0]
     }
-    validateNewUUID(id) {
-        return !this.data.authTokens.some(token => token.id == id)
+
+    /**  
+     * Unique ID Helpers
+     */
+    async validateNewUUID(id, collectionName) {
+        return await this.firestoreRead(
+            collectionName,
+            data => this.validateNewUUIDBase(id, data)
+        )
     }
-    generateNewUUID() {
+    validateNewUUIDBase(id, data) {
+        return !data.some(token => token.id == id)
+    }
+    async generateNewUUID(collectionName) {
         let id = uuid.v4()
-        if(!this.validateNewUUID(id)) {
-            return this.generateNewUUID()
+        const validateResult = await this.validateNewUUID(id, collectionName)
+        if (!validateResult) {
+            return await this.generateNewUUID(collectionName)
         }
-        return id 
+        if (validateResult.databaseError) {
+            return validateResult
+        }
+        return {
+            value: id
+        }
     }
-    generateAuthToken(username) {
-        this.cleanTokens()
-        console.log('cleared')
-        let id = this.generateNewUUID()
+    async generateAuthToken(username) {
+        let newIDResult = await this.generateNewUUID('auth_tokens')
+        if (newIDResult.databaseError) {
+            return { databaseError: true }
+        }
         let expDate = new Date(Date.now())
         expDate.setHours(expDate.getHours() + 1)
         let token = {
             username: username,
-            id: id,
+            id: newIDResult.value,
             expirationDate: expDate.getTime()
         }
-        this.data.authTokens.push(token)
-        this.save()
-        return token 
+        const createResult = await this.firestoreCreate('auth_tokens', token, token => token)
+        if (createResult.databaseError) {
+            return { databaseError: true }
+        }
+        return token
     }
-    cleanTokens() {
-        this.data.authTokens = this.data.authTokens.filter(token => token.expirationDate > Date.now())
-        this.save()
+    
+    /** 
+     * REST Operation: POST /token/refresh
+     */
+    async refreshToken(tokenId) {
+        const readResult = await this.firestoreRead(
+            'auth_tokens',
+            (data) => this.refreshTokenBaseRead(tokenId, data)
+        )
+        if (!readResult) {
+            return false;
+        }
+        if (readResult.databaseError) {
+            return { databaseError: true }
+        }
+        const id = await this.generateNewUUID('auth_tokens')
+        const newToken = this.refreshTokenBaseUpdate(readResult, id)
+        const updateResult = this.firestoreUpdate(
+            'auth_tokens', tokenId, newToken
+        )
+        return updateResult
     }
-    refreshToken(tokenId) {
-        let token = (this.data.authTokens.filter(token => token.id == tokenId))[0]
+    refreshTokenBaseRead(tokenId, data) {
+        var token = (data.filter(token => token.id == tokenId))[0]
         let tokenDate = token ? new Date(token.expirationDate) : null 
         if(!token || tokenDate.getTime() < Date.now()) {
-            this.cleanTokens()
             return false
         }
-        token.id = this.generateNewUUID()
+        return token
+    }
+    refreshTokenBaseUpdate(token, id) {
+        let tokenDate = new Date(token.expirationDate)
         tokenDate.setHours(tokenDate.getHours() + 1)
         token.expirationDate = tokenDate.getTime()
-        this.save()
-        return token 
+        token.id = id
+        return token
     }
-    checkAuthToken(tokenId) {
-        let token = (this.data.authTokens.filter(token => token.id == tokenId))[0]
+
+    /**  
+     * REST Operation: POST /token/verify
+     */
+    async checkAuthToken(tokenId) {
+        const readTokenResult = await this.firestoreRead(
+            'auth_tokens', 
+            data => this.checkAuthTokenBase(tokenId, data)
+        )
+        if (!readTokenResult) {
+            return false 
+        }
+        if (readTokenResult.databaseError) {
+            return { databaseError: true }
+        }
+        const readUserResult = await this.firestoreRead(
+            'users',
+            data => this.checkAuthTokenUser(readTokenResult.username, data) 
+        )
+        if (readUserResult.databaseError) {
+            return { databaseError: true }
+        }
+        return readUserResult
+    }
+    checkAuthTokenBase(tokenId, data) {
+        let token = (data.filter(token => token.id == tokenId))[0]
         let tokenDate = token ? new Date(token.expirationDate) : null 
         if(!token || tokenDate.getTime() < Date.now()) {
-            this.cleanTokens()
-            return false
+            return null
         }
-        return (this.data.users.filter(user => user.username == token.username))[0]
+        return token 
     }
+    checkAuthTokenUser(username, data) {
+        return data.filter(user => user.username == username)
+    }
+
+    /**  
+     * REST Operation: /account/selectall
+     */
     getAllAccountsForUser(username, tokenId) {
         if(this.checkAuthToken(tokenId).username != username) {
             return false
         }
         return (this.data.users.filter(user => user.username == username))[0].accounts
     }
+
+    /**  
+     * REST Operation: /account/selectone
+     */
     getAccount(username, tokenId, accountNumber) {
         if(this.checkAuthToken(tokenId).username != username) {
             return false
@@ -140,6 +268,10 @@ class DataEditor {
         let account = user.accounts.filter(acc => acc.accountNumber == accountNumber)[0]
         return account ? account : {}
     }
+
+    /**  
+     * REST Operation: /account/create
+     */
     validateNewAccount(username, id) {
         let user = this.data.users.filter(user => user.username == username)[0]
         return !user.accounts.some(acc => acc.id == id)
@@ -163,6 +295,10 @@ class DataEditor {
         this.save()
         return account 
     }
+
+    /**  
+     * REST Operation: /account/delete
+     */
     closeAccount(username, tokenId, accountId) {
         if(this.checkAuthToken(tokenId).username != username) {
             return false
@@ -172,6 +308,10 @@ class DataEditor {
         this.save()
         return accountId
     }
+
+    /**  
+     * REST Operation: /exchange
+     */
     transfer(username, tokenId, fromAccountId, toAccountId, amount) {
         if(this.checkAuthToken(tokenId).username != username) {
             return 'bad token'

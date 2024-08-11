@@ -21,58 +21,82 @@ const logIP = (ip, user) => {
     })
 }
 
-app.post('/user/create', (req, res) => {
+app.post('/user/create', async (req, res) => {
+    // Log Request 
     logIP(requestIp.getClientIp(req), req.body.username)
-    if(!dataEditor.validateNewUser('', req.body.username, req.body.email, req.body.phoneNumber)) {
+    
+    var createResult = await dataEditor.createUser(
+        req.body.username,
+        `${req.body.firstName} ${req.body.lastName}`,
+        req.body.password,
+        req.body.email,
+        req.body.phoneNumber
+    )
+
+    if (createResult.databaseError) {
         res.json({
-            status: '400',
-            msg: 'A user with this username, email, or phone number already exists'
+            status: '500',
+            msg: 'An unknown database error has occurred.'
         })
         return
     }
-    let token = false
-    while(!token) {
-        token = dataEditor.createUser(
-            uuid.v4(),
-            req.body.username,
-            `${req.body.firstName} ${req.body.lastName}`,
-            req.body.password,
-            req.body.email,
-            req.body.phoneNumber
-        )
-    }
-    res.json(token)
+
+    res.json(createResult)
 })
 
-app.post('/user/verify', (req, res) => {
+app.post('/user/verify', async (req, res) => {
+    // log request 
     logIP(requestIp.getClientIp(req), req.body.username)
-    let token = dataEditor.validateLogin(req.body.username, req.body.password)
-    if(!token) {
+    
+    var validateResult = await dataEditor.validateLogin(req.body.username, req.body.password)
+
+    if (!validateResult) {
         res.json({
             status: '400',
             msg: 'Invalid username or password'
         })
         return 
     }
+
+    if (validateResult.databaseError) {
+        res.json({
+            status: '500',
+            msg: 'An unknown database error has occurred.'
+        })
+        return
+    }
+
     res.json(token) 
 })
 
-app.post('/token/refresh', (req, res) => {
+app.post('/token/refresh', async (req, res) => {
+    // log request 
     logIP(requestIp.getClientIp(req), req.body.username)
+
     let token = dataEditor.refreshToken(req.body.tokenId)
-    if(!token || token.username != req.body.username) {
+    if(!token || token.databaseError || token.username != req.body.username) {
         res.json({
             status: '400',
             msg: 'Provided token cannot be refreshed'
         })
         return 
     }
+
     res.json(token)
 })
 
-app.post('/token/verify', (req, res) => {
+app.post('/token/verify', async (req, res) => {
+    // log request
     logIP(requestIp.getClientIp(req), req.body.username)
-    let user = dataEditor.checkAuthToken(req.body.tokenId)
+
+    let user = await dataEditor.checkAuthToken(req.body.tokenId)
+    if (user && user.databaseError) {
+        res.json({
+            status: '500',
+            msg: 'An unknown database error has occurred.'
+        })
+        return 
+    }
     if(!user || user.username != req.body.username) {
         res.json({
             status: '400',
