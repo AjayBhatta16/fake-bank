@@ -60,7 +60,20 @@ export default function ExchangeScreen(props) {
             console.log(err)
         })
         props.user.accounts.forEach(account => {
-            if(account.accountNumber == parseInt(to)) account.amount += amount
+            if(account.accountNumber == parseInt(to)) {
+                account.amount += amount
+                if (!account.transactions) {
+                    account.transactions = []
+                }
+                account.transactions.push({
+                    amount: amount,
+                    fromAccount: "Bank Service",
+                    toAccount: to,
+                    timestamp: (new Date(Date.now())).getTime(),
+                    transactionType: "deposit",
+                    note: ""
+                })
+            }
         })
         props.setUser(props.user)
         return exchangeRes.status == '200'
@@ -83,9 +96,32 @@ export default function ExchangeScreen(props) {
         props.user.accounts.forEach(account => {
             if(account.accountNumber == parseInt(from)) {
                 account.amount -= amount
+                if (!account.transactions) {
+                    account.transactions = []
+                }
+                account.transactions.push({
+                    amount: amount,
+                    fromAccount: from,
+                    toAccount: to,
+                    timestamp: (new Date(Date.now())).getTime(),
+                    transactionType: "transfer",
+                    note: "",
+                    hideOnTable: true
+                })
             } 
             if(account.accountNumber == parseInt(to)) {
                 account.amount += amount
+                if (!account.transactions) {
+                    account.transactions = []
+                }
+                account.transactions.push({
+                    amount: amount,
+                    fromAccount: from,
+                    toAccount: to,
+                    timestamp: (new Date(Date.now())).getTime(),
+                    transactionType: "transfer",
+                    note: "",
+                })
             }
         })
         props.setUser(props.user)
@@ -106,7 +142,20 @@ export default function ExchangeScreen(props) {
             console.log(err)
         })
         props.user.accounts.forEach(account => {
-            if(account.accountNumber == parseInt(from)) account.amount -= amount
+            if(account.accountNumber == parseInt(from)) {
+                account.amount -= amount
+                if (!account.transactions) {
+                    account.transactions = []
+                }
+                account.transactions.push({
+                    amount: amount,
+                    fromAccount: from,
+                    toAccount: "Bank Service",
+                    timestamp: (new Date(Date.now())).getTime(),
+                    transactionType: "withdraw",
+                    note: "",
+                })
+            }
         })
         props.setUser(props.user)
         return exchangeRes.status == '200'

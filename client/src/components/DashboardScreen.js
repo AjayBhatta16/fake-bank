@@ -3,6 +3,7 @@ import Account from './dashboard/Account'
 import StandardContainer from './StandardContainer'
 import env from '../env'
 import axios from 'axios'
+import Transaction from './dashboard/Transaction'
 
 export default function DashboardScreen(props) {
     const [errMsg, setErrMsg] = useState('')
@@ -32,6 +33,10 @@ export default function DashboardScreen(props) {
     }
     const firstName = props.user.fullName.split(' ')[0]
     const lastName = props.user.fullName.split(' ').slice(1).join(' ')
+    const transactions = props.user.accounts
+        .reduce((accum, current) => [...accum, ...current.transactions], [])
+        .sort((t1, t2) => t1.timestamp > t2.timestamp ? -1 : 1)
+        .filter(txn => !txn.hideOnTable)
     return (
         <StandardContainer>
             <div className="custom-wide bg-dark">
@@ -40,7 +45,15 @@ export default function DashboardScreen(props) {
                     <table className="table table-striped table-hover table-dark">
                         <thead>
                             <tr>
-                                <th colspan="2">Your accounts</th>
+                                <th colspan="5">Your accounts</th>
+                                <th colSpan="2">
+                                    <div className='float-right'>
+                                        <button 
+                                            className="btn btn-primary btn-sm my-0" 
+                                            onClick={handleAdd}
+                                        >+ New Account</button>
+                                    </div>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -68,7 +81,36 @@ export default function DashboardScreen(props) {
                 <small id="successMsg" className="text-success form-text">
                     {successMsg}
                 </small>
-                <button className="btn btn-primary btn-lg" onClick={handleAdd}>New Account</button>
+                
+                <div className='table-responsive mt-3'>
+                    <table className='table table-striped table-hover table-dark'>
+                        <thead>
+                            <tr>
+                                <th colSpan="6">Transaction History</th>
+                            </tr>
+                            <tr>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Amount</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {transactions.length == 0 ? (
+                                <tr>
+                                    <td colspan="6">No accounts found for this user</td>
+                                </tr>
+                            ) : null}
+                            {
+                                transactions.map(txn => (
+                                    <Transaction transaction={txn} />
+                                ))
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </StandardContainer>
     )
