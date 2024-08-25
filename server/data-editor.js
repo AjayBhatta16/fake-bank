@@ -1,10 +1,13 @@
 const fs = require('fs')
 const uuid = require('uuid')
+const path = require('path')
 
 const firebaseAdmin = require("firebase-admin")
 const { initializeApp } = require("firebase-admin/app")
 
-const firestoreServiceAccountKey = require("./secrets/serviceAccountKey.json")
+const resolvedDbKeyFilePath = path.resolve(__dirname, "secrets/serviceAccountKey.json")
+
+const firestoreServiceAccountKey = require(resolvedDbKeyFilePath);
 
 class DataEditor {
     // initialization

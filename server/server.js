@@ -21,6 +21,14 @@ const logIP = (ip, user) => {
     })
 }
 
+app.get('/status', async (req, res) => {
+    const dbKeyPresent = fs.existsSync('secrets/serviceAccountKey.json')
+    res.send(`
+        API: Running
+        Database Config Files: ${dbKeyPresent ? 'Present' : 'Missing'}`
+    )
+})
+
 app.post('/user/create', async (req, res) => {
     // Log Request 
     logIP(requestIp.getClientIp(req), req.body.username)

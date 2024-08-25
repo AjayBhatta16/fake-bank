@@ -1,5 +1,1 @@
 runtime: nodejs22
-
-skip_files:
-- ^(.*/)?\.gitignore$  
-- ^(.*/)?\.git/
