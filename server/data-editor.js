@@ -311,7 +311,8 @@ class DataEditor {
             accountNumber: id,
             owner: checkAuthTokenResult.id,
             accountType: accountType,
-            amount: amount 
+            amount: amount ,
+            transactions: []
         }
         checkAuthTokenResult.accounts.push(account)
         const updateUserDataResult = await this.firestoreUpdate('users', checkAuthTokenResult.id, checkAuthTokenResult)
@@ -344,14 +345,14 @@ class DataEditor {
      * REST Operation: /exchange
      */
     async transfer(username, tokenId, fromAccountId, toAccountId, amount) {
-        const withdrawResult = await this.withdraw(username, tokenId, fromAccountId, amount)
-        const depositResult = await this.deposit(username, tokenId, toAccountId, amount) 
+        const withdrawResult = await this.withdraw(username, tokenId, fromAccountId, amount, true, toAccountId)
+        const depositResult = await this.deposit(username, tokenId, toAccountId, amount, true, fromAccountId) 
         if (withdrawResult.databaseError || depositResult.databaseError) {
             return { databaseError: true }
         }
         return withdrawResult
     }
-    async deposit(username, tokenId, accountId, amount) {
+    async deposit(username, tokenId, accountId, amount, forTransfer=false, logFromAccountID="") {
         const checkAuthTokenResult = await this.checkAuthToken(tokenId)
         if (!checkAuthTokenResult || checkAuthTokenResult.username != username) {
             return 'bad token'
@@ -362,13 +363,35 @@ class DataEditor {
         let account = checkAuthTokenResult.accounts.filter(acc => acc.accountNumber == accountId)[0]
         if(!account) return 'no account'
         account.amount += amount
+        if (!account.transactions) {
+            account.transactions = []
+        }
+        if (forTransfer) {
+            account.transactions.push({
+                amount: amount,
+                fromAccount: logFromAccountID,
+                toAccount: accountId,
+                note: "",
+                transactionType: "transfer",
+                timestamp: (new Date(Date.now())).getTime()
+            })
+        } else {
+            account.transactions.push({
+                amount: amount,
+                fromAccount: "Bank Service",
+                toAccount: accountId,
+                note: "",
+                transactionType: "deposit",
+                timestamp: (new Date(Date.now())).getTime()
+            })
+        }
         const updateUserDataResult = await this.firestoreUpdate('users', checkAuthTokenResult.id, checkAuthTokenResult)
         if (!updateUserDataResult || updateUserDataResult.databaseError) {
             return { databaseError: true }
         }
         return 'success'
     }
-    async withdraw(username, tokenId, accountId, amount) {
+    async withdraw(username, tokenId, accountId, amount, forTransfer=false, logToAccountID="") {
         const checkAuthTokenResult = await this.checkAuthToken(tokenId)
         if (!checkAuthTokenResult || checkAuthTokenResult.username != username) {
             return 'bad token'
@@ -379,6 +402,29 @@ class DataEditor {
         let account = checkAuthTokenResult.accounts.filter(acc => acc.accountNumber == accountId)[0]
         if(!account) return 'no account'
         account.amount -= amount
+        if (!account.transactions) {
+            account.transactions = []
+        }
+        if (forTransfer) {
+            account.transactions.push({
+                amount: amount,
+                fromAccount: accountId,
+                toAccount: logToAccountID,
+                note: "",
+                transactionType: "transfer",
+                timestamp: (new Date(Date.now())).getTime(),
+                hideFromTable: true
+            })
+        } else {
+            account.transactions.push({
+                amount: amount,
+                fromAccount: accountId,
+                toAccount: "Bank Service",
+                note: "",
+                transactionType: "withdraw",
+                timestamp: (new Date(Date.now())).getTime()
+            })
+        }
         const updateUserDataResult = await this.firestoreUpdate('users', checkAuthTokenResult.id, checkAuthTokenResult)
         if (!updateUserDataResult || updateUserDataResult.databaseError) {
             return { databaseError: true }
