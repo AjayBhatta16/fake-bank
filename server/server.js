@@ -235,7 +235,8 @@ app.post('/exchange', async (req, res) => {
                 req.body.username,
                 req.body.tokenId,
                 req.body.from,
-                req.body.amount 
+                req.body.amount,
+                req.body.note
             )
             break
         case 'deposit':
@@ -243,7 +244,8 @@ app.post('/exchange', async (req, res) => {
                 req.body.username,
                 req.body.tokenId,
                 req.body.to,
-                req.body.amount
+                req.body.amount,
+                req.body.note
             )
             break
         case 'transfer':
@@ -252,7 +254,8 @@ app.post('/exchange', async (req, res) => {
                 req.body.tokenId,
                 req.body.from,
                 req.body.to,
-                req.body.amount 
+                req.body.amount,
+                req.body.note
             )
             break
         default:

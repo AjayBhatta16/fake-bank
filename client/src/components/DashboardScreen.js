@@ -36,7 +36,7 @@ export default function DashboardScreen(props) {
     const transactions = props.user.accounts
         .reduce((accum, current) => [...accum, ...current.transactions], [])
         .sort((t1, t2) => t1.timestamp > t2.timestamp ? -1 : 1)
-        .filter(txn => !txn.hideOnTable)
+        .filter(txn => !txn.hideFromTable)
     return (
         <StandardContainer>
             <div className="custom-wide bg-dark">

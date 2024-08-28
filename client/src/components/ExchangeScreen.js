@@ -45,14 +45,15 @@ export default function ExchangeScreen(props) {
         props.setUser(props.user)
         return true 
     }
-    const handleDeposit = async (to, amount) => {
+    const handleDeposit = async (to, amount, note) => {
         let exchangeRes
         await axios.post(`${env.endpoint}/exchange`, {
             username: props.user.username,
             tokenId: props.token.id,
             to: parseInt(to),
             transactionType: 'deposit',
-            amount: amount 
+            amount: amount,
+            note: note
         }).then(res => {
             exchangeRes = res.data 
         }).catch(err => {
@@ -71,14 +72,14 @@ export default function ExchangeScreen(props) {
                     toAccount: to,
                     timestamp: (new Date(Date.now())).getTime(),
                     transactionType: "deposit",
-                    note: ""
+                    note: note
                 })
             }
         })
         props.setUser(props.user)
         return exchangeRes.status == '200'
     }
-    const handleTransfer = async (from, to, amount) => {
+    const handleTransfer = async (from, to, amount, note) => {
         let exchangeRes
         await axios.post(`${env.endpoint}/exchange`, {
             username: props.user.username,
@@ -86,7 +87,8 @@ export default function ExchangeScreen(props) {
             from: parseInt(from),
             to: parseInt(to),
             transactionType: 'transfer',
-            amount: amount 
+            amount: amount,
+            note: note
         }).then(res => {
             exchangeRes = res.data 
         }).catch(err => {
@@ -105,8 +107,8 @@ export default function ExchangeScreen(props) {
                     toAccount: to,
                     timestamp: (new Date(Date.now())).getTime(),
                     transactionType: "transfer",
-                    note: "",
-                    hideOnTable: true
+                    note: note,
+                    hideFromTable: true
                 })
             } 
             if(account.accountNumber == parseInt(to)) {
@@ -120,21 +122,22 @@ export default function ExchangeScreen(props) {
                     toAccount: to,
                     timestamp: (new Date(Date.now())).getTime(),
                     transactionType: "transfer",
-                    note: "",
+                    note: note,
                 })
             }
         })
         props.setUser(props.user)
         return exchangeRes.status == '200'
     }
-    const handleWithdraw = async (from, amount) => {
+    const handleWithdraw = async (from, amount, note) => {
         let exchangeRes
         await axios.post(`${env.endpoint}/exchange`, {
             username: props.user.username,
             tokenId: props.token.id,
             from: parseInt(from),
             transactionType: 'withdraw',
-            amount: amount 
+            amount: amount,
+            note: note
         }).then(res => {
             exchangeRes = res.data 
         }).catch(err => {
@@ -153,7 +156,7 @@ export default function ExchangeScreen(props) {
                     toAccount: "Bank Service",
                     timestamp: (new Date(Date.now())).getTime(),
                     transactionType: "withdraw",
-                    note: "",
+                    note: note,
                 })
             }
         })
@@ -185,13 +188,13 @@ export default function ExchangeScreen(props) {
                 exchangeResult = await handleAdd(type, amount)
                 break
             case 'deposit':
-                exchangeResult = await handleDeposit(to, amount)
+                exchangeResult = await handleDeposit(to, amount, typeRef.current.value)
                 break 
             case 'transfer':
-                exchangeResult = await handleTransfer(from, to, amount)
+                exchangeResult = await handleTransfer(from, to, amount, typeRef.current.value)
                 break 
             case 'withdraw':
-                exchangeResult = await handleWithdraw(from, amount)
+                exchangeResult = await handleWithdraw(from, amount, typeRef.current.value)
                 break 
             default:
                 setErrMsg('ERROR: Invalid Transaction Type')
@@ -239,7 +242,7 @@ export default function ExchangeScreen(props) {
                             </div>
                         ) : null }
                         <div className="form-group">
-                            <label for="type" className="text-info">{props.type == 'add' ? 'Type' : 'Memo'}:</label>
+                            <label for="type" className="text-info">{props.type == 'add' ? 'Type' : 'Note'}:</label>
                             <input 
                                 type="text"
                                 ref={typeRef}
