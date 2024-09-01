@@ -344,9 +344,15 @@ class DataEditor {
     /**  
      * REST Operation: /exchange
      */
-    async transfer(username, tokenId, fromAccountId, toAccountId, amount, note) {
-        const withdrawResult = await this.withdraw(username, tokenId, fromAccountId, amount, note, true, toAccountId)
-        const depositResult = await this.deposit(username, tokenId, toAccountId, amount, note, true, fromAccountId) 
+    async transfer(username, tokenId, fromAccountId, toAccountId, amount, note, wireTransfer=false) {
+        console.log("DataEditor.transfer - wire transfer: "+wireTransfer)
+        const withdrawResult = await this.withdraw(username, tokenId, fromAccountId, amount, note, true, toAccountId, wireTransfer)
+        var depositResult = {
+            databaseError: false
+        }
+        if (!wireTransfer) {
+            depositResult = await this.deposit(username, tokenId, toAccountId, amount, note, true, fromAccountId) 
+        }
         if (withdrawResult.databaseError || depositResult.databaseError) {
             return { databaseError: true }
         }
@@ -391,7 +397,8 @@ class DataEditor {
         }
         return 'success'
     }
-    async withdraw(username, tokenId, accountId, amount, note, forTransfer=false, logToAccountID="") {
+    async withdraw(username, tokenId, accountId, amount, note, forTransfer=false, logToAccountID="", forWireTransfer=false) {
+        console.log("DataEditor.withdraw - forWireTransfer:"+forWireTransfer)
         const checkAuthTokenResult = await this.checkAuthToken(tokenId)
         if (!checkAuthTokenResult || checkAuthTokenResult.username != username) {
             return 'bad token'
@@ -413,7 +420,7 @@ class DataEditor {
                 note: note,
                 transactionType: "transfer",
                 timestamp: (new Date(Date.now())).getTime(),
-                hideFromTable: true
+                hideFromTable: !forWireTransfer
             })
         } else {
             account.transactions.push({

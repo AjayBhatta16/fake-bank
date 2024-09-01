@@ -9,6 +9,7 @@ export default function ExchangeScreen(props) {
     const [fromValue, setFromValue] = useState(props.target.accountNumber ? props.target.accountNumber.toString() : null)
     const amountRef = useRef(null)
     const typeRef = useRef(null)
+    const wireNumberRef = useRef(null)
     const stopRedirect = event => event.preventDefault()
     const getTitle = () => {
         switch(props.type) {
@@ -163,6 +164,45 @@ export default function ExchangeScreen(props) {
         props.setUser(props.user)
         return exchangeRes.status == '200'
     }
+    const handleWireTransfer = async (from, amount, note) => {
+        let exchangeRes
+        console.log("wire transfer")
+        const wireNumber = wireNumberRef.current.value
+        await axios.post(`${env.endpoint}/exchange`, {
+            username: props.user.username,
+            tokenId: props.token.id,
+            from: parseInt(from),
+            transactionType: 'transfer',
+            to: `Wire ${wireNumber}`,
+            amount: amount,
+            note: note,
+            wireTransfer: true
+        }).then(res => {
+            exchangeRes = res.data 
+        }).catch(err => {
+            setErrMsg('An unknown error has occurred')
+            console.log(err)
+        })
+        props.user.accounts.forEach(account => {
+            if(account.accountNumber == parseInt(from)) {
+                account.amount -= amount
+                if (!account.transactions) {
+                    account.transactions = []
+                }
+                console.log("adding to UI logs")
+                account.transactions.push({
+                    amount: amount,
+                    fromAccount: from,
+                    toAccount: `Wire ${wireNumber}`,
+                    timestamp: (new Date(Date.now())).getTime(),
+                    transactionType: "transfer",
+                    note: note,
+                })
+            }
+        })
+        props.setUser(props.user)
+        return exchangeRes.status == '200'
+    }
     const handleSubmit = async event => {
         event.preventDefault()
         let amount = parseFloat(amountRef.current.value)
@@ -191,7 +231,11 @@ export default function ExchangeScreen(props) {
                 exchangeResult = await handleDeposit(to, amount, typeRef.current.value)
                 break 
             case 'transfer':
-                exchangeResult = await handleTransfer(from, to, amount, typeRef.current.value)
+                if (toValue == 'external') {
+                    exchangeResult = await handleWireTransfer(from, amount, typeRef.current.value)
+                } else {
+                    exchangeResult = await handleTransfer(from, to, amount, typeRef.current.value)
+                }
                 break 
             case 'withdraw':
                 exchangeResult = await handleWithdraw(from, amount, typeRef.current.value)
@@ -238,9 +282,24 @@ export default function ExchangeScreen(props) {
                                     ) : props.user.accounts.map(acc => (
                                             <option value={acc.accountNumber.toString()}>{acc.accountNumber} ({acc.accountType})</option>
                                     ))}
+                                    {props.type == 'transfer' ? (
+                                        <option value="external">External</option>
+                                    ) : null}
                                 </select>
                             </div>
                         ) : null }
+                        { (props.type == 'transfer' && toValue == 'external') ? (
+                            <div className='form-group'>
+                                <label for="wire-number" className='text-info'>Wire Number:</label>
+                                <input 
+                                    type='text'
+                                    ref={wireNumberRef}
+                                    name='wire-number'
+                                    id='wire-number'
+                                    className='form-control'
+                                />
+                            </div>
+                        ) : null} 
                         <div className="form-group">
                             <label for="type" className="text-info">{props.type == 'add' ? 'Type' : 'Note'}:</label>
                             <input 

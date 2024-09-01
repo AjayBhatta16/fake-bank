@@ -249,13 +249,15 @@ app.post('/exchange', async (req, res) => {
             )
             break
         case 'transfer':
+            console.log("wire transfer")
             transactionRes = await dataEditor.transfer(
                 req.body.username,
                 req.body.tokenId,
                 req.body.from,
                 req.body.to,
                 req.body.amount,
-                req.body.note
+                req.body.note,
+                req.body.wireTransfer
             )
             break
         default:
