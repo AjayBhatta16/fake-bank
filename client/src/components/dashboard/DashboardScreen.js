@@ -1,9 +1,9 @@
 import React, {useState} from 'react'
-import Account from './dashboard/Account'
-import StandardContainer from './StandardContainer'
-import env from '../env'
+import Account from './Account'
+import StandardContainer from '../StandardContainer'
+import env from '../../env'
 import axios from 'axios'
-import Transaction from './dashboard/Transaction'
+import Transaction from './Transaction'
 
 export default function DashboardScreen(props) {
     const [errMsg, setErrMsg] = useState('')

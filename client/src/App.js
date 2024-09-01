@@ -1,10 +1,10 @@
 import './App.css';
 import { useState } from 'react'
-import DashboardScreen from './components/DashboardScreen'
-import ExchangeScreen from './components/ExchangeScreen'
-import HomeScreen from './components/HomeScreen'
-import LoginScreen from './components/LoginScreen'
-import SignupScreen from './components/SignupScreen'
+import DashboardScreen from './components/dashboard/DashboardScreen'
+import ExchangeScreen from './components/exchange/ExchangeScreen'
+import HomeScreen from './components/home/HomeScreen'
+import LoginScreen from './components/login/LoginScreen'
+import SignupScreen from './components/signup/SignupScreen'
 import env from './env'
 
 function App() {

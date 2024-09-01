@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react'
-import StandardContainer from './StandardContainer'
-import env from '../env'
+import StandardContainer from '../StandardContainer'
+import env from '../../env'
 import axios from 'axios'
 
 export default function ExchangeScreen(props) {

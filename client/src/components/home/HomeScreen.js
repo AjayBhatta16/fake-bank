@@ -1,7 +1,7 @@
 import React from 'react'
-import HomeContainer from './home/HomeContainer'
-import Header from './home/Header'
-import SalesPitch from './home/SalesPitch'
+import HomeContainer from './HomeContainer'
+import Header from './Header'
+import SalesPitch from './SalesPitch'
 
 export default function HomeScreen(props) {
     return (
