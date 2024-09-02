@@ -7,8 +7,8 @@ export default function SalesPitch(props) {
             <h1 className="display-4">{env.bankSlogan}</h1>
             <hr />
             <p className="lead">If money doesn't grow on trees, then why do banks have branches?</p>
-            <p class="lead">
-                <a class="btn btn-primary btn-lg" href="#" onClick={() => {props.setScreen('signup')}}>Start Banking</a>
+            <p className="lead">
+                <a className="btn btn-primary btn-lg" href="#" onClick={() => {props.setScreen('signup')}}>Start Banking</a>
             </p>
         </div>
     )

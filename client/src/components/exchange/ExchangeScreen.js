@@ -1,7 +1,17 @@
 import React, { useRef, useState } from 'react'
 import StandardContainer from '../StandardContainer'
-import env from '../../env'
-import axios from 'axios'
+import FormSubmitButton from '../common/FormSubmitButton'
+import FormErrorText from '../common/FormErrorText'
+import FormTextInput from '../common/FormTextInput'
+import MaybeDisplay from '../common/MaybeDisplay'
+import AccountDropdown from './AccountDropdown'
+import stopRedirect from '../../utils/stop-redirect'
+import formatExchangeWindowTitle from '../../utils/format-exchange-window-title'
+import openAccount from '../../utils/api/open-account'
+import deposit from '../../utils/api/deposit'
+import internalTransfer from '../../utils/api/internal-transfer'
+import withdraw from '../../utils/api/withdraw'
+import externalTransfer from '../../utils/api/external-transfer'
 
 export default function ExchangeScreen(props) {
     const [errMsg, setErrMsg] = useState('')
@@ -10,203 +20,56 @@ export default function ExchangeScreen(props) {
     const amountRef = useRef(null)
     const typeRef = useRef(null)
     const wireNumberRef = useRef(null)
-    const stopRedirect = event => event.preventDefault()
-    const getTitle = () => {
-        switch(props.type) {
-            case 'add':
-                return 'Open Account'
-            case 'deposit':
-                return 'Make A Deposit'
-            case 'transfer':
-                return 'Transfer Money'
-            case 'withdraw':
-                return 'Withdraw Money'
-            default:
-                return 'ERROR: Unknown exchange type'
-        }
-    }
     const handleAdd = async (type, amount) => {
-        let accountCreated
-        await axios.post(`${env.endpoint}/account/create`, {
-            username: props.user.username,
-            tokenId: props.token.id,
-            type: type,
-            amount: amount 
-        }).then(res => {
-            accountCreated = res.data
-        }).catch(err => {
-            setErrMsg('An unknown error has occurred')
-            console.log(err)
-        })
-        if(!accountCreated.accountNumber) {
-            if(accountCreated.msg) setErrMsg('Your login session has expired. Please refresh the page.')
-            return false 
+        const accountCreated = await openAccount(props.user.username, props.token.id, type, amount)
+        if (accountCreated.errMsg) {
+            setErrMsg(accountCreated.errMsg)
+            return false
         }
         props.user.accounts.push(accountCreated)
         props.setUser(props.user)
         return true 
     }
     const handleDeposit = async (to, amount, note) => {
-        let exchangeRes
-        await axios.post(`${env.endpoint}/exchange`, {
-            username: props.user.username,
-            tokenId: props.token.id,
-            to: parseInt(to),
-            transactionType: 'deposit',
-            amount: amount,
-            note: note
-        }).then(res => {
-            exchangeRes = res.data 
-        }).catch(err => {
-            setErrMsg('An unknown error has occurred')
-            console.log(err)
-        })
-        props.user.accounts.forEach(account => {
-            if(account.accountNumber == parseInt(to)) {
-                account.amount += amount
-                if (!account.transactions) {
-                    account.transactions = []
-                }
-                account.transactions.push({
-                    amount: amount,
-                    fromAccount: "Bank Service",
-                    toAccount: to,
-                    timestamp: (new Date(Date.now())).getTime(),
-                    transactionType: "deposit",
-                    note: note
-                })
-            }
-        })
-        props.setUser(props.user)
-        return exchangeRes.status == '200'
+        const depositAction = await deposit(props.token.id, to, amount, note, props.user)
+        if (depositAction.errMsg) {
+            setErrMsg(depositAction.errMsg)
+            return false
+        }
+        props.setUser(depositAction.newUserData)
+        return depositAction.exchangeRes.status == '200'
     }
     const handleTransfer = async (from, to, amount, note) => {
-        let exchangeRes
-        await axios.post(`${env.endpoint}/exchange`, {
-            username: props.user.username,
-            tokenId: props.token.id,
-            from: parseInt(from),
-            to: parseInt(to),
-            transactionType: 'transfer',
-            amount: amount,
-            note: note
-        }).then(res => {
-            exchangeRes = res.data 
-        }).catch(err => {
-            setErrMsg('An unknown error has occurred')
-            console.log(err)
-        })
-        props.user.accounts.forEach(account => {
-            if(account.accountNumber == parseInt(from)) {
-                account.amount -= amount
-                if (!account.transactions) {
-                    account.transactions = []
-                }
-                account.transactions.push({
-                    amount: amount,
-                    fromAccount: from,
-                    toAccount: to,
-                    timestamp: (new Date(Date.now())).getTime(),
-                    transactionType: "transfer",
-                    note: note,
-                    hideFromTable: true
-                })
-            } 
-            if(account.accountNumber == parseInt(to)) {
-                account.amount += amount
-                if (!account.transactions) {
-                    account.transactions = []
-                }
-                account.transactions.push({
-                    amount: amount,
-                    fromAccount: from,
-                    toAccount: to,
-                    timestamp: (new Date(Date.now())).getTime(),
-                    transactionType: "transfer",
-                    note: note,
-                })
-            }
-        })
-        props.setUser(props.user)
-        return exchangeRes.status == '200'
+        const internalTransferAction = await internalTransfer(props.token.id, from, to, amount, note, props.user)
+        if (internalTransferAction.errMsg) {
+            setErrMsg(internalTransferAction.errMsg)
+            return false
+        }
+        props.setUser(internalTransferAction.newUserData)
+        return internalTransferAction.exchangeRes.status == '200'
     }
     const handleWithdraw = async (from, amount, note) => {
-        let exchangeRes
-        await axios.post(`${env.endpoint}/exchange`, {
-            username: props.user.username,
-            tokenId: props.token.id,
-            from: parseInt(from),
-            transactionType: 'withdraw',
-            amount: amount,
-            note: note
-        }).then(res => {
-            exchangeRes = res.data 
-        }).catch(err => {
-            setErrMsg('An unknown error has occurred')
-            console.log(err)
-        })
-        props.user.accounts.forEach(account => {
-            if(account.accountNumber == parseInt(from)) {
-                account.amount -= amount
-                if (!account.transactions) {
-                    account.transactions = []
-                }
-                account.transactions.push({
-                    amount: amount,
-                    fromAccount: from,
-                    toAccount: "Bank Service",
-                    timestamp: (new Date(Date.now())).getTime(),
-                    transactionType: "withdraw",
-                    note: note,
-                })
-            }
-        })
-        props.setUser(props.user)
-        return exchangeRes.status == '200'
+        const withdrawAction = await withdraw(props.token.id, from, amount, note, props.user)
+        if (withdrawAction.errMsg) {
+            setErrMsg(withdrawAction.errMsg)
+            return false
+        }
+        props.setUser(withdrawAction.newUserData)
+        return withdrawAction.exchangeRes.status == '200'
     }
     const handleWireTransfer = async (from, amount, note) => {
-        let exchangeRes
-        console.log("wire transfer")
-        const wireNumber = wireNumberRef.current.value
-        await axios.post(`${env.endpoint}/exchange`, {
-            username: props.user.username,
-            tokenId: props.token.id,
-            from: parseInt(from),
-            transactionType: 'transfer',
-            to: `Wire ${wireNumber}`,
-            amount: amount,
-            note: note,
-            wireTransfer: true
-        }).then(res => {
-            exchangeRes = res.data 
-        }).catch(err => {
-            setErrMsg('An unknown error has occurred')
-            console.log(err)
-        })
-        props.user.accounts.forEach(account => {
-            if(account.accountNumber == parseInt(from)) {
-                account.amount -= amount
-                if (!account.transactions) {
-                    account.transactions = []
-                }
-                console.log("adding to UI logs")
-                account.transactions.push({
-                    amount: amount,
-                    fromAccount: from,
-                    toAccount: `Wire ${wireNumber}`,
-                    timestamp: (new Date(Date.now())).getTime(),
-                    transactionType: "transfer",
-                    note: note,
-                })
-            }
-        })
-        props.setUser(props.user)
-        return exchangeRes.status == '200'
+        const externalTransferAction = await externalTransfer(props.token.id, from, amount, note, wireNumberRef.current.value, props.user)
+        if (externalTransferAction.errMsg) {
+            setErrMsg(externalTransferAction.errMsg)
+            return false
+        }
+        props.setUser(externalTransferAction.newUserData)
+        return externalTransferAction.exchangeRes.status == '200'
     }
     const handleSubmit = async event => {
         event.preventDefault()
         let amount = parseFloat(amountRef.current.value)
-        if(!amount) {
+        if(!amount && amount != 0) {
             setErrMsg('Amount must be a numerical value')
             return 
         }
@@ -215,30 +78,23 @@ export default function ExchangeScreen(props) {
             setErrMsg('Type must be savings or checking')
             return 
         }
-        let to, from
-        if(props.type == 'withdraw' || props.type == 'transfer') {
-            from = fromValue
-        }
-        if(props.type == 'transfer' || props.type == 'deposit') {
-            to = toValue
-        }
         let exchangeResult = false 
         switch(props.type) {
             case 'add':
                 exchangeResult = await handleAdd(type, amount)
                 break
             case 'deposit':
-                exchangeResult = await handleDeposit(to, amount, typeRef.current.value)
+                exchangeResult = await handleDeposit(toValue, amount, typeRef.current.value)
                 break 
             case 'transfer':
                 if (toValue == 'external') {
-                    exchangeResult = await handleWireTransfer(from, amount, typeRef.current.value)
+                    exchangeResult = await handleWireTransfer(fromValue, amount, typeRef.current.value)
                 } else {
-                    exchangeResult = await handleTransfer(from, to, amount, typeRef.current.value)
+                    exchangeResult = await handleTransfer(fromValue, toValue, amount, typeRef.current.value)
                 }
                 break 
             case 'withdraw':
-                exchangeResult = await handleWithdraw(from, amount, typeRef.current.value)
+                exchangeResult = await handleWithdraw(fromValue, amount, typeRef.current.value)
                 break 
             default:
                 setErrMsg('ERROR: Invalid Transaction Type')
@@ -253,83 +109,51 @@ export default function ExchangeScreen(props) {
         }
         props.setScreen('dashboard')
     }
-    const handleToChange = event => {
-        setToValue(event.target.value)
-    }
-    const handleFromChange = event => {
-        setFromValue(event.target.value)
-    }
     return (
         <StandardContainer>
             <div className="wrapper bg-dark">
                 <div id="formContent">
-                    <h1 className="text-white text-center">{getTitle()}</h1>
+                    <h1 className="text-white text-center">{formatExchangeWindowTitle(props.type)}</h1>
                     <form className="form" onSubmit={stopRedirect}>
-                        {(props.type == 'withdraw' || props.type == 'transfer') ? (
-                            <div className="form-group">
-                                <label for="from" className="text-info">From:</label>
-                                <select class="form-control" id="from" onChange={handleFromChange}>
-                                    <option value={props.target.accountNumber.toString()}>{props.target.accountNumber} ({props.target.accountType})</option>
-                                </select>
-                            </div>
-                        ) : null }
-                        {(props.type == 'deposit' || props.type == 'transfer') ? (
-                            <div className="form-group">
-                                <label for="to" className="text-info">To:</label>
-                                <select class="form-control" id="to" onChange={handleToChange}>
-                                    {props.type == 'deposit' ? (
-                                        <option value={props.target.accountNumber.toString()}>{props.target.accountNumber} ({props.target.accountType})</option>
-                                    ) : props.user.accounts.map(acc => (
-                                            <option value={acc.accountNumber.toString()}>{acc.accountNumber} ({acc.accountType})</option>
-                                    ))}
-                                    {props.type == 'transfer' ? (
-                                        <option value="external">External</option>
-                                    ) : null}
-                                </select>
-                            </div>
-                        ) : null }
-                        { (props.type == 'transfer' && toValue == 'external') ? (
-                            <div className='form-group'>
-                                <label for="wire-number" className='text-info'>Wire Number:</label>
-                                <input 
-                                    type='text'
-                                    ref={wireNumberRef}
-                                    name='wire-number'
-                                    id='wire-number'
-                                    className='form-control'
-                                />
-                            </div>
-                        ) : null} 
-                        <div className="form-group">
-                            <label for="type" className="text-info">{props.type == 'add' ? 'Type' : 'Note'}:</label>
-                            <input 
-                                type="text"
-                                ref={typeRef}
-                                name="type"
-                                id="type"
-                                className="form-control"
+                        <MaybeDisplay if={(props.type == 'withdraw' || props.type == 'transfer')}>
+                            <AccountDropdown
+                                formName="from"
+                                displayName="From"
+                                changeAction={event => setFromValue(event.target.value)}
+                                accounts={[props.target]}
                             />
-                        </div>
-                        <div className="form-group">
-                            <label for="amount" className="text-info">Amount:</label>
-                            <input 
-                                type="text"
-                                ref={amountRef}
-                                name="amount"
-                                id="amount"
-                                className="form-control"
+                        </MaybeDisplay>
+                        <MaybeDisplay if={(props.type == 'deposit' || props.type == 'transfer')}>
+                            <AccountDropdown 
+                                formName="to"
+                                displayName="To"
+                                changeAction={event => setToValue(event.target.value)}
+                                accounts={props.type == 'deposit' ? [props.target] : [...props.user.accounts]}
+                                includeExternalOption={props.type == 'transfer'}
                             />
-                        </div>
-                        <small id="errMsg" className="text-danger form-text">
-                            {errMsg}
-                        </small>
-                        <div className="form-group">
-                            <button
-                                name="submit" 
-                                className="btn btn-info btn-md" 
-                                onClick={handleSubmit}
-                            >Submit</button>
-                        </div>
+                        </MaybeDisplay>
+                        <MaybeDisplay if={(props.type == 'transfer' && toValue == 'external')}>
+                            <FormTextInput 
+                                domRef={wireNumberRef}
+                                formName="wire-number"
+                                displayName="Wire Number"
+                            />
+                        </MaybeDisplay>
+                        <FormTextInput 
+                            domRef={typeRef}
+                            formName="type"
+                            displayName={props.type == 'add' ? 'Type' : 'Note'}
+                        />
+                        <FormTextInput 
+                            domRef={amountRef}
+                            formName="amount"
+                            displayName="Amount"
+                        />
+                        <FormErrorText text={errMsg} />
+                        <FormSubmitButton 
+                            onClick={handleSubmit}
+                            displayText="Submit"
+                        />
                     </form>
                 </div>
             </div>
