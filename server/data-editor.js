@@ -9,10 +9,13 @@ const resolvedDbKeyFilePath = path.resolve(__dirname, "secrets/serviceAccountKey
 
 const firestoreServiceAccountKey = require(resolvedDbKeyFilePath);
 
+console.log("STARTUP: service account key acquired")
+
 class DataEditor {
     // initialization
     constructor() {
         this.initFirestore()
+        console.log("STARTUP: DataEditor initialized")
     }
     initFirestore() {
         initializeApp({

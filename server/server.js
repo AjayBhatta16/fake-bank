@@ -14,6 +14,7 @@ app.use(express.urlencoded({extended: true}))
 let dataEditor = new DataEditor('./data.json')
 
 const logIP = (ip, user) => {
+    console.log('logIP: start')
     let date = new Date(Date.now())
     let text = ip + ' ' + user + ' ' + date.toString() + '\n'
     fs.appendFile('ip-log.txt', text, err => {
@@ -21,7 +22,12 @@ const logIP = (ip, user) => {
     })
 }
 
+app.get('/', (req, res) => {
+    res.status(200).send('OK')
+})
+
 app.get('/status', async (req, res) => {
+    console.log('GET /status: start')
     const dbKeyPresent = fs.existsSync('secrets/serviceAccountKey.json')
     res.send(`
         API: Running
@@ -30,6 +36,7 @@ app.get('/status', async (req, res) => {
 })
 
 app.post('/user/create', async (req, res) => {
+    console.log('POST /user/create: start')
     // Log Request 
     logIP(requestIp.getClientIp(req), req.body.username)
     
@@ -42,22 +49,26 @@ app.post('/user/create', async (req, res) => {
     )
 
     if (createResult.databaseError) {
+        console.log('POST /user/create: 500 RESPONSE')
         return res.json({
             status: '500',
             msg: 'An unknown database error has occurred.'
         })
     }
 
+    console.log('POST /user/create: 200 RESPONSE')
     res.json(createResult)
 })
 
 app.post('/user/verify', async (req, res) => {
     // log request 
+    console.log('POST /user/verify: start')
     logIP(requestIp.getClientIp(req), req.body.username)
     
     var validateResult = await dataEditor.validateLogin(req.body.username, req.body.password)
 
     if (!validateResult) {
+        console.log('POST /user/verify: 400 RESPONSE')
         return res.json({
             status: '400',
             msg: 'Invalid username or password'
@@ -65,12 +76,14 @@ app.post('/user/verify', async (req, res) => {
     }
 
     if (validateResult.databaseError) {
+        console.log('POST /user/verify: 500 RESPONSE')
         return res.json({
             status: '500',
             msg: 'An unknown database error has occurred.'
         })
     }
 
+    console.log('POST /user/verify: 200 RESPONSE')
     res.json(validateResult) 
 })
 
@@ -290,7 +303,24 @@ app.post('/exchange', async (req, res) => {
     })
 })
 
+app.get('/health-check', (req, res) => {
+    console.log('HEALTH CHECK')
+    res.json({
+        status: '200',
+        message: 'OK'
+    })
+})
+
+app.get('/log-dump', async (req, res) => {
+    const logFileExists = fs.existsSync('./ip-log.txt')
+    if (logFileExists) {
+        res.sendFile('./ip-log.txt', { root: __dirname })
+    } else {
+        res.send("no logs found")
+    }
+})
+
 const PORT = process.env.PORT | 3001
 app.listen(PORT, () => {
-    console.log(`Process listening on port ${PORT}`)
+    console.log(`STARTUP: Process listening on port ${PORT}`)
 })
