@@ -1,4 +1,8 @@
 runtime: nodejs22
+env: standard
+handlers:
+  - url: /.*
+    script: auto
 readiness_check:
   path: "/readiness_check"
   check_interval_sec: 10
