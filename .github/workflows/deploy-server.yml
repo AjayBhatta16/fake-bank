@@ -1,0 +1,24 @@
+name: Deploy to App Engine
+
+on:
+  push:
+    paths:
+      - "server/**"
+    branches:
+      - production  # Or any branch you want to deploy from
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Deploy to App Engine
+      uses: google-github-actions/deploy-appengine@v0.2.0
+      with:
+        deliverables: server/app.yaml
+        version: next
+        project_id: fake-bank-432202
+        credentials: ${{ secrets.GCP_DEPLOYMENT_KEY }}
