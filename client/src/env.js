@@ -1,5 +1,5 @@
 const env = {
-    endpoint: 'http://localhost:3001',
+    endpoint: 'https://fake-bank-432202.uc.r.appspot.com',
     bankName: 'Mike Oxlong Federal Credit Union',
     bankSlogan: 'Banking can be a dick sometimes'
 }
