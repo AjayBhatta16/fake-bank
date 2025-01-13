@@ -4,7 +4,7 @@ module.exports = (app, dataEditor) => {
     // CreateUser
     app.post('/user/create', async (req, res) => {
         console.log('CreateUser: start')
-        LoggingUtils.logIP(req, req.body.username)
+        await LoggingUtils.logIP(req, req.body.username, dataEditor)
         
         var createResult = await dataEditor.createUser(
             req.body.username,
@@ -29,7 +29,7 @@ module.exports = (app, dataEditor) => {
     // VerifyUserLogin
     app.post('/user/verify', async (req, res) => {
         console.log('VerifyUserLogin: start')
-        LoggingUtils.logIP(req, req.body.username)
+        await LoggingUtils.logIP(req, req.body.username, dataEditor)
         
         var validateResult = await dataEditor.validateLogin(req.body.username, req.body.password)
     
@@ -51,5 +51,20 @@ module.exports = (app, dataEditor) => {
     
         console.log('VerifyUserLogin: 200 RESPONSE')
         res.json(validateResult) 
+    })
+
+    // UserDump
+    app.get('/user-dump', async (_, res) => {
+        const allUsers = await dataEditor.firestoreRead(
+            'users',
+            data => data.map(user => {
+                return {
+                    ...user,
+                    id: undefined,
+                    accounts: undefined,
+                }
+            })
+        )
+        res.json(allUsers)
     })
 }

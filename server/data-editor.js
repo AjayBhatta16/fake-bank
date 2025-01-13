@@ -60,6 +60,27 @@ class DataEditor {
         }
     }
 
+    /**
+     * IP Logging Helpers
+     */
+    async logActivity(ipAddress, username, description) {
+        const log = {
+            ipAddress,
+            username,
+            description,
+            timestamp: (new Date(Date.now())).toString()
+        }
+        const createResult = await this.firestoreCreate('ip_logs', log, data => data)
+        if (createResult.databaseError) {
+            console.warn("A database error occurred while saving the following log: "+log)
+        }
+        return log
+    }
+
+    async getLogDump() {
+        return await this.firestoreRead('ip_logs', _=>_)
+    }
+
     /** 
      * REST Operation: POST /account/create
     */

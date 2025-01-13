@@ -1,6 +1,6 @@
 const fs = require('fs')
 
-module.exports = (app) => {
+module.exports = (app, dataEditor) => {
     // CheckBaseURL
     app.get('/', (_, res) => {
         console.log('CheckBaseURL')
@@ -28,11 +28,7 @@ module.exports = (app) => {
     
     // LogDump
     app.get('/log-dump', async (_, res) => {
-        const logFileExists = fs.existsSync('./ip-log.txt')
-        if (logFileExists) {
-            res.sendFile('./ip-log.txt', { root: __dirname })
-        } else {
-            res.send("no logs found")
-        }
+        const logDump = await dataEditor.getLogDump()
+        res.json(logDump)
     })
 }
