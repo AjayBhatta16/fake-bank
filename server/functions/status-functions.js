@@ -1,3 +1,5 @@
+const fs = require('fs')
+
 module.exports = (app, dataEditor) => {
     // CheckBaseURL
     app.get('/', (_, res) => {
