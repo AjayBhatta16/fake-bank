@@ -15,6 +15,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    - name: Download Firebase Account Key
+      run: |
+        mkdir -p secrets
+        echo "$AUTH_KEY" > secrets/serviceAccountKey.json
+      env:
+        AUTH_KEY: ${{ secrets.FIRESTORE_AUTH_KEY }}
+
     - name: Deploy to App Engine
       uses: google-github-actions/deploy-appengine@v0.2.0
       with:
