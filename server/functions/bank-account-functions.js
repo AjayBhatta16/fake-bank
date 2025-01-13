@@ -3,7 +3,7 @@ const LoggingUtils = require('../utils/logging-utils')
 module.exports = (app, dataEditor) => {
     // CreateBankAccount
     app.post('/account/create', async (req, res) => {
-        LoggingUtils.logIP(req, req.body.username)
+        await LoggingUtils.logIP(req, req.body.username, dataEditor)
         let account = await dataEditor.createAccount(
             req.body.username,
             req.body.tokenId,
@@ -27,7 +27,7 @@ module.exports = (app, dataEditor) => {
     
     // GetBankAccounts
     app.post('/account/selectall', async (req, res) => {
-        LoggingUtils.logIP(req, req.body.username)
+        await LoggingUtils.logIP(req, req.body.username, dataEditor)
         let accountList = await dataEditor.getAllAccountsForUser(req.body.username, req.body.tokenId)
         if (!accountList) {
             return res.json({
@@ -48,7 +48,7 @@ module.exports = (app, dataEditor) => {
     
     // GetBankAccount
     app.post('/account/selectone', async (req, res) => {
-        LoggingUtils.logIP(req, req.body.username)
+        await LoggingUtils.logIP(req, req.body.username, dataEditor)
         let account = await dataEditor.getAccount(
             req.body.username,
             req.body.tokenId,
@@ -71,7 +71,7 @@ module.exports = (app, dataEditor) => {
     
     // DeleteBankAccount
     app.post('/account/delete', async (req, res) => {
-        LoggingUtils.logIP(req, req.body.username)
+        await LoggingUtils.logIP(req, req.body.username, dataEditor)
         let accountId = await dataEditor.closeAccount(
             req.body.username,
             req.body.tokenId,
@@ -96,7 +96,7 @@ module.exports = (app, dataEditor) => {
     
     // ProcessTransaction
     app.post('/exchange', async (req, res) => {
-        LoggingUtils.logIP(req, req.body.username)
+        await LoggingUtils.logIP(req, req.body.username, dataEditor)
         let transactionRes
         switch(req.body.transactionType) {
             case 'withdraw':

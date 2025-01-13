@@ -10,7 +10,7 @@ app.use(express.urlencoded({extended: true}))
 
 let dataEditor = new DataEditor('./data.json')
 
-require('./functions/status-functions')(app)
+require('./functions/status-functions')(app, dataEditor)
 require('./functions/user-functions')(app, dataEditor)
 require('./functions/auth-token-functions')(app, dataEditor)
 require('./functions/bank-account-functions')(app, dataEditor)

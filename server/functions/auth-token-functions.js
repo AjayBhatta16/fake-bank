@@ -3,7 +3,7 @@ const LoggingUtils = require('../utils/logging-utils')
 module.exports = (app, dataEditor) => {
     // RefreshToken
     app.post('/token/refresh', async (req, res) => {
-        LoggingUtils.logIP(req, req.body.username)
+        await LoggingUtils.logIP(req, req.body.username, dataEditor)
     
         let token = await dataEditor.refreshToken(req.body.tokenId)
     
@@ -40,7 +40,7 @@ module.exports = (app, dataEditor) => {
 
     // VerifyAuthToken
     app.post('/token/verify', async (req, res) => {
-        LoggingUtils.logIP(req, req.body.username)
+        await LoggingUtils.logIP(req, req.body.username, dataEditor)
     
         let user = await dataEditor.checkAuthToken(req.body.tokenId)
         if (user && user.databaseError) {
