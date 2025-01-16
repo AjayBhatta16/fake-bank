@@ -6,33 +6,55 @@ import HomeScreen from './components/home/HomeScreen'
 import LoginScreen from './components/login/LoginScreen'
 import SignupScreen from './components/signup/SignupScreen'
 import env from './env'
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 
 function App() {
-  const [screen, setScreen] = useState('home')
   const [token, setToken] = useState({})
   const [user, setUser] = useState({})
   const [targetAccount, setTargetAccount] = useState({})
   document.title = env.bankName
-  switch(screen) {
-    case 'dashboard':
-      return <DashboardScreen setTarget={setTargetAccount} setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} />
-    case 'add':
-      return <ExchangeScreen target={targetAccount} setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} type="add" />
-    case 'deposit':
-      return <ExchangeScreen target={targetAccount} setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} type="deposit" />
-    case 'withdraw':
-      return <ExchangeScreen target={targetAccount} setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} type="withdraw" />
-    case 'transfer':
-      return <ExchangeScreen target={targetAccount} setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} type="transfer" />
-    case 'home':
-      return <HomeScreen setScreen={setScreen} />
-    case 'login':
-      return <LoginScreen setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} />
-    case 'signup':
-      return <SignupScreen setScreen={setScreen} setToken={setToken} setUser={setUser} token={token} user={user} />
-    default:
-      return <HomeScreen setScreen={setScreen} />
-  }
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={ <><Outlet/></> }>
+          <Route index element={
+            <HomeScreen />
+          }/>
+          <Route path="login" element={
+            <LoginScreen 
+              setUser={setUser}
+              setToken={setToken}
+            />
+          }/>
+          <Route path="signup" element={
+            <SignupScreen
+              setUser={setUser}
+              setToken={setToken}
+            />
+          }/>
+          <Route path="dashboard" element={
+            <DashboardScreen
+              setTarget={setTargetAccount}
+              setUser={setUser}
+              setToken={setToken}
+              user={user}
+              token={token}
+            />
+          }/>
+          <Route path="accounts/:transactionType" element={
+            <ExchangeScreen
+              setUser={setUser}
+              setToken={setToken}
+              user={user}
+              token={token}
+              target={targetAccount}
+            />
+          }/>
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  )
 }
 
 export default App;

@@ -7,11 +7,16 @@ import AccountTable from './AccountTable'
 import parseName from '../../utils/parse-name'
 import parseTransactionList from '../../utils/parse-transaction-list'
 import deleteAccount from '../../utils/api/delete-account'
+import { useNavigate } from 'react-router-dom'
 
 export default function DashboardScreen(props) {
     const [errMsg, setErrMsg] = useState('')
     const [successMsg, setSuccessMsg] = useState('')
     const [dashboardUser, setDashboardUser] = useState(props.user)
+    const navigate = useNavigate()
+    if (!props.user.username) {
+        navigate('/')
+    }
     const handleDelete = async account => {
         const deleteResult = await deleteAccount(props.user.username, props.token.id, account.accountNumber)
         if (deleteResult.success) {
@@ -30,7 +35,7 @@ export default function DashboardScreen(props) {
             <div className="custom-wide bg-dark">
                 <h1 className="text-center text-white">{lastName}, {firstName}</h1>
                 <AccountTable 
-                    setScreen={props.setScreen}
+                    setScreen={navigate}
                     setTarget={props.setTarget}
                     dashboardUser={dashboardUser}
                     handleDelete={handleDelete}
