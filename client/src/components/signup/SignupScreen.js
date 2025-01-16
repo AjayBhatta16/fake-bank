@@ -6,9 +6,11 @@ import FormErrorText from '../common/FormErrorText'
 import FormTextInput from '../common/FormTextInput'
 import stopRedirect from '../../utils/stop-redirect'
 import signup from '../../utils/api/signup'
+import { useNavigate } from 'react-router-dom'
 
 export default function SignupScreen(props) {
     const [incorrectMsg, setIncorrectMsg] = useState('')
+    const navigate = useNavigate()
     const firstNameRef = useRef(null)
     const lastNameRef = useRef(null)
     const usernameRef = useRef(null)
@@ -32,7 +34,7 @@ export default function SignupScreen(props) {
         }
         props.setToken(signupResult.token)
         props.setUser(signupResult.user)
-        props.setScreen('dashboard')
+        navigate('/dashboard')
     }
     return (
         <StandardContainer>
@@ -77,7 +79,7 @@ export default function SignupScreen(props) {
                             displayText="Sign Up"
                         />
                         <AlternativeLink 
-                            setScreen={props.setScreen}
+                            setScreen={navigate}
                             text="Already a member? Log in"
                             destination="login"
                         />

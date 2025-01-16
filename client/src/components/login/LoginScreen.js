@@ -6,8 +6,10 @@ import FormTextInput from '../common/FormTextInput'
 import stopRedirect from '../../utils/stop-redirect'
 import login from '../../utils/api/login'
 import FormSubmitButton from '../common/FormSubmitButton'
+import { useNavigate } from 'react-router-dom'
 
 export default function LoginScreen(props) {
+    const navigate = useNavigate()
     const [incorrectMsg, setIncorrectMsg] = useState('')
     const usernameRef = useRef(null)
     const passwordRef = useRef(null)
@@ -20,7 +22,7 @@ export default function LoginScreen(props) {
         }
         props.setToken(loginResult.token)
         props.setUser(loginResult.user)
-        props.setScreen('dashboard')
+        navigate('/dashboard')
     }
     return (
         <StandardContainer>
@@ -45,7 +47,7 @@ export default function LoginScreen(props) {
                             displayText="Log In"
                         />
                         <AlternativeLink 
-                            setScreen={props.setScreen}
+                            setScreen={navigate}
                             text="No account? Sign up"
                             destination="signup"
                         />

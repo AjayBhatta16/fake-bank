@@ -8,7 +8,7 @@ export default function SalesPitch(props) {
             <hr />
             <p className="lead">If money doesn't grow on trees, then why do banks have branches?</p>
             <p className="lead">
-                <a className="btn btn-primary btn-lg" href="#" onClick={() => {props.setScreen('signup')}}>Start Banking</a>
+                <button className="btn btn-primary btn-lg" onClick={() => {props.setScreen('/signup')}}>Start Banking</button>
             </p>
         </div>
     )

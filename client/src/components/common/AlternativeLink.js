@@ -6,7 +6,7 @@ export default function AlternativeLink(props) {
             <a 
                 href="#" 
                 className="text-info" 
-                onClick={() => {props.setScreen(props.destination)}}
+                onClick={() => {props.setScreen('/'+props.destination)}}
             >{props.text}</a>
         </div>
     )
