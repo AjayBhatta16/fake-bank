@@ -12,6 +12,7 @@ import deposit from '../../utils/api/deposit'
 import internalTransfer from '../../utils/api/internal-transfer'
 import withdraw from '../../utils/api/withdraw'
 import externalTransfer from '../../utils/api/external-transfer'
+import { useNavigate, useParams } from 'react-router-dom'
 
 export default function ExchangeScreen(props) {
     const [errMsg, setErrMsg] = useState('')
@@ -20,6 +21,11 @@ export default function ExchangeScreen(props) {
     const amountRef = useRef(null)
     const typeRef = useRef(null)
     const wireNumberRef = useRef(null)
+    const navigate = useNavigate()
+    if (!props.user.username) {
+        navigate('/login')
+    }
+    const { transactionType } = useParams()
     const handleAdd = async (type, amount) => {
         const accountCreated = await openAccount(props.user.username, props.token.id, type, amount)
         if (accountCreated.errMsg) {
@@ -74,12 +80,12 @@ export default function ExchangeScreen(props) {
             return 
         }
         let type = typeRef.current.value.toLowerCase()
-        if(props.type == 'add' && type != 'savings' && type != 'checking') {
+        if(transactionType == 'add' && type != 'savings' && type != 'checking') {
             setErrMsg('Type must be savings or checking')
             return 
         }
         let exchangeResult = false 
-        switch(props.type) {
+        switch(transactionType) {
             case 'add':
                 exchangeResult = await handleAdd(type, amount)
                 break
@@ -107,15 +113,15 @@ export default function ExchangeScreen(props) {
             }
             return
         }
-        props.setScreen('dashboard')
+        navigate('/dashboard')
     }
     return (
         <StandardContainer>
             <div className="wrapper bg-dark">
                 <div id="formContent">
-                    <h1 className="text-white text-center">{formatExchangeWindowTitle(props.type)}</h1>
+                    <h1 className="text-white text-center">{formatExchangeWindowTitle(transactionType)}</h1>
                     <form className="form" onSubmit={stopRedirect}>
-                        <MaybeDisplay if={(props.type == 'withdraw' || props.type == 'transfer')}>
+                        <MaybeDisplay if={(transactionType == 'withdraw' || transactionType == 'transfer')}>
                             <AccountDropdown
                                 formName="from"
                                 displayName="From"
@@ -123,16 +129,16 @@ export default function ExchangeScreen(props) {
                                 accounts={[props.target]}
                             />
                         </MaybeDisplay>
-                        <MaybeDisplay if={(props.type == 'deposit' || props.type == 'transfer')}>
+                        <MaybeDisplay if={(transactionType == 'deposit' || transactionType == 'transfer')}>
                             <AccountDropdown 
                                 formName="to"
                                 displayName="To"
                                 changeAction={event => setToValue(event.target.value)}
-                                accounts={props.type == 'deposit' ? [props.target] : [...props.user.accounts]}
-                                includeExternalOption={props.type == 'transfer'}
+                                accounts={transactionType == 'deposit' ? [props.target] : [...props.user.accounts]}
+                                includeExternalOption={transactionType == 'transfer'}
                             />
                         </MaybeDisplay>
-                        <MaybeDisplay if={(props.type == 'transfer' && toValue == 'external')}>
+                        <MaybeDisplay if={(transactionType == 'transfer' && toValue == 'external')}>
                             <FormTextInput 
                                 domRef={wireNumberRef}
                                 formName="wire-number"
@@ -142,7 +148,7 @@ export default function ExchangeScreen(props) {
                         <FormTextInput 
                             domRef={typeRef}
                             formName="type"
-                            displayName={props.type == 'add' ? 'Type' : 'Note'}
+                            displayName={transactionType == 'add' ? 'Type' : 'Note'}
                         />
                         <FormTextInput 
                             domRef={amountRef}

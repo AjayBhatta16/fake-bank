@@ -10,8 +10,8 @@ export default function Header(props) {
             </button>
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
                 <form className="form-inline my-2 my-lg-0">
-                    <button className="btn btn-outline-info my-2 my-sm-0" onClick={() => {props.setScreen('login')}}>Login</button>
-                    <button className="btn btn-outline-info my-2 my-sm-0" onClick={() => {props.setScreen('signup')}}>Sign Up</button>
+                    <button className="btn btn-outline-info my-2 my-sm-0" onClick={() => {props.setScreen('/login')}}>Login</button>
+                    <button className="btn btn-outline-info my-2 my-sm-0" onClick={() => {props.setScreen('/signup')}}>Sign Up</button>
                 </form>
             </div>
         </nav>

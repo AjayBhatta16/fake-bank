@@ -3,7 +3,7 @@ import AccountRow from "./AccountRow"
 
 export default function AccountTable(props) {
     const handleAdd = () => {
-        props.setScreen('add')
+        props.setScreen('/accounts/add')
     }
     return (
         <div className="table-responsive">

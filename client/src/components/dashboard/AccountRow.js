@@ -6,7 +6,7 @@ import AccountActionButton from './AccountActionButton'
 export default function AccountRow(props) {
     const handleExchange = exchangeType => {
         props.setTarget(props.account)
-        props.setScreen(exchangeType)
+        props.setScreen('/accounts/'+exchangeType)
     }
     return (
         <tr>
