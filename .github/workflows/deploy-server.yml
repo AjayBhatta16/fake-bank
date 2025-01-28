@@ -29,3 +29,4 @@ jobs:
         version: ${{ github.sha }}
         project_id: fake-bank-432202
         credentials: ${{ secrets.GCP_DEPLOYMENT_KEY }}
+        flags: '--verbosity=debug'
