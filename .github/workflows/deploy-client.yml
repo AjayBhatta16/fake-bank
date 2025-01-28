@@ -21,7 +21,7 @@ jobs:
         node-version: 22
 
     - name: Install Dependencies
-      run: npm install
+      run: cd client && npm install
 
     - name: Build React App
       run: npm run build
