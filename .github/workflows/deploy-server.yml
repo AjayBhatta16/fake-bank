@@ -17,6 +17,7 @@ jobs:
 
     - name: Download Firebase Account Key
       run: |
+        cd server
         mkdir -p secrets
         echo "$AUTH_KEY" > secrets/serviceAccountKey.json
       env:
