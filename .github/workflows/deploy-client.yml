@@ -24,7 +24,7 @@ jobs:
       run: cd client && npm install
 
     - name: Build React App
-      run: cd client && npm run build
+      run: cd client && CI=false && npm run build
 
     - name: Deploy to Firebase
       uses: w9jds/firebase-action@master
