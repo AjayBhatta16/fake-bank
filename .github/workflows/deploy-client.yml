@@ -24,7 +24,7 @@ jobs:
       run: cd client && npm install
 
     - name: Build React App
-      run: npm run build
+      run: cd client && npm run build
 
     - name: Deploy to Firebase
       uses: w9jds/firebase-action@master
@@ -32,3 +32,4 @@ jobs:
         args: deploy --only hosting
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        PROJECT_PATH: ./client

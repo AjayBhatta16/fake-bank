@@ -8,7 +8,7 @@ import SignupScreen from './components/signup/SignupScreen'
 import env from './env'
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 
-// testing 2
+// testing 3
 function App() {
   const [token, setToken] = useState({})
   const [user, setUser] = useState({})
