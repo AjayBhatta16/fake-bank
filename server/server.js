@@ -15,6 +15,7 @@ require('./functions/status-functions')(app, dataEditor)
 require('./functions/user-functions')(app, dataEditor)
 require('./functions/auth-token-functions')(app, dataEditor)
 require('./functions/bank-account-functions')(app, dataEditor)
+require('./functions/etl-pipeline-functions')(app, dataEditor)
 
 const PORT = process.env.PORT ?? 3001
 app.listen(PORT, () => {
