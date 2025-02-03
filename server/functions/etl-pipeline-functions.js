@@ -63,25 +63,23 @@ module.exports = (app, dataEditor) => {
     // CreateNewUser 
     app.post('/etl/new-user', async (req, res) => {
         let user = FakerUtils.createFakeUser()
-
-        await dataEditor.createUserETL(user)
+        user.id = (await dataEditor.generateNewUUID('users')).value
 
         const numAccounts = Math.min(req.numAccounts ?? 3, 15)
         const numTransactions = Math.min(req.numTransactions ?? 100, 500)
 
         for (let i = 0; i < numAccounts; i++) {
             const account = FakerUtils.createBankAccount(user.username)
-            await dataEditor.createAccountETL(account)
+            account.accountNumber = dataEditor.generateNewAccountID(user)
+            user.accounts.push(account)
         }
-
-        user = await dataEditor.validateLogin(user.username, user.password, true)
         
         for (let i = 0; i < numTransactions; i++) {
             const transaction = FakerUtils.createTransaction(user)
-            await dataEditor.createTransactionETL(transaction)
+            user = dataEditor.appendTransaction(user, transaction)
         }
 
-        user = await dataEditor.validateLogin(user.username, user.password, true)
+        await dataEditor.createUserETL(user)
 
         res.status(200).json(user)
     })

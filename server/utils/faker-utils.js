@@ -7,6 +7,7 @@ const createFakeUser = () => {
         password: faker.internet.password(),
         email: faker.internet.email(),
         phoneNumber: faker.phone.number(),
+        accounts: [],
     }
 }
 
@@ -14,7 +15,12 @@ const createBankAccount = (username) => {
     return {
         username,
         accountType: faker.helpers.arrayElement(["checking", "savings"]),
-        amount: parseFloat(faker.finance.amount(10, 10000000, 2)),
+        amount: parseFloat(faker.finance.amount({
+            min: 10,
+            max: 100000,
+            dec: 2,
+        })),
+        transactions: [],
     }
 }
 
@@ -23,37 +29,36 @@ const createTransaction = (user) => {
 
     const type = faker.helpers.arrayElement(["deposit", "withdraw", "transfer"])
 
-    const accountId = faker.helpers.arrayElement(
-        user.accounts.map(acc => `${acc.accountNumber}`)
-    )
+    const toAccount = type === "withdraw"
+        ? "Bank Service"
+        : faker.helpers.arrayElement(
+            user.accounts.map(acc => acc.accountNumber)
+        )
 
-    const amount = parseFloat(faker.finance.amount(5, 5000, 2))
+    const fromAccount = type === "deposit"
+        ? "Bank Service"
+        : faker.helpers.arrayElement(
+            user.accounts.map(acc => acc.accountNumber).filter(id => id !== toAccount)
+        )
+
+    const amount = parseFloat(faker.finance.amount({
+        min: 5,
+        max: 5000,
+        dec: 2,
+    }))
 
     const note = faker.lorem.sentence()
 
-    const date = faker.date.past({ years: 5 })
-
-    const transaction = {
-        username,
-        type,
-        accountId,
-        amount,
-        note,
-        date
-    }
-
-    if (type !== 'withdraw') {
-        return transaction
-    }
-
-    const fromAccountId = faker.helpers.arrayElement(
-        user.accounts.map(acc => `${acc.accountNumber}`).filter(id => id !== accountId)
-    )
+    const timestamp = new Date(faker.date.past({ years: 5 })).getTime()
 
     return {
-        ...transaction,
-        fromAccountId,
-        toAccountId: accountId,
+        username,
+        type,
+        toAccount,
+        fromAccount,
+        amount,
+        note,
+        timestamp
     }
 }
 

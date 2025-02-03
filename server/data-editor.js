@@ -12,7 +12,6 @@ const firestoreServiceAccountKey = require(resolvedDbKeyFilePath);
 console.log("STARTUP: service account key acquired")
 
 class DataEditor {
-    ETL_TOKEN = uuid.v4();
     // initialization
     constructor() {
         this.initFirestore()
@@ -103,13 +102,10 @@ class DataEditor {
     }
 
     async createUserETL(userObj) {
-        await this.createUser(
-            userObj.username,
-            userObj.fullName,
-            userObj.password,
-            userObj.email,
-            userObj.phoneNumber,
-        )
+        const createResult = await this.firestoreCreate('users', userObj, data => data)
+        return {
+            databaseError: !!createResult.databaseError,
+        }
     }
 
     async createUser(username, fullName, password, email, phoneNumber) {
@@ -286,9 +282,6 @@ class DataEditor {
      * REST Operation: POST /token/verify
      */
     async checkAuthToken(tokenId) {
-        if (tokenId === this.ETL_TOKEN) {
-            return true
-        }
         const readTokenResult = await this.firestoreRead(
             'auth_tokens', 
             data => this.checkAuthTokenBase(tokenId, data)
@@ -360,23 +353,10 @@ class DataEditor {
         return id
     }
 
-    async createAccountETL(accountObj) {
-        await this.createAccount(
-            accountObj.username,
-            this.ETL_TOKEN,
-            accountObj.accountType,
-            accountObj.amount,
-            true,
-        )
-    }
-
-    async createAccount(username, tokenId, accountType, amount, etlAuth=false) {
+    async createAccount(username, tokenId, accountType, amount) {
         let checkAuthTokenResult = await this.checkAuthToken(tokenId)
-        if (!checkAuthTokenResult || (!etlAuth && checkAuthTokenResult.username != username)) {
+        if (!checkAuthTokenResult || checkAuthTokenResult.username != username) {
             return false
-        }
-        if (etlAuth) {
-            checkAuthTokenResult = await this.getUserData(username)
         }
         if (checkAuthTokenResult.databaseError) {
             return { databaseError: true }
@@ -419,54 +399,13 @@ class DataEditor {
     /**  
      * REST Operation: /exchange
      */
-    async createTransactionETL(transactionObj) {
-        switch(transactionObj.type) {
-            case 'deposit':
-                await this.deposit(
-                    transactionObj.username,
-                    this.ETL_TOKEN,
-                    transactionObj.accountId,
-                    transactionObj.amount,
-                    transactionObj.note,
-                    false,
-                    "",
-                    transactionObj.date,
-                    true,
-                )
-            case 'withdraw':
-                await this.withdraw(
-                    transactionObj.username,
-                    this.ETL_TOKEN,
-                    transactionObj.accountId,
-                    transactionObj.amount,
-                    transactionObj.note,
-                    false,
-                    "",
-                    false,
-                    transactionObj.date,
-                    true,
-                )
-            case 'transfer':
-                await this.transfer(
-                    transactionObj.username,
-                    this.ETL_TOKEN,
-                    transactionObj.fromAccountID,
-                    transactionObj.toAccountId,
-                    transactionObj.amount,
-                    transactionObj.note, 
-                    false,
-                    transactionObj.date,
-                    true,
-                )
-        }
-    }
     async transfer(username, tokenId, fromAccountId, toAccountId, amount, note, 
-        wireTransfer=false, date=null, etlAuth=false,
+        wireTransfer=false,
     ) {
         console.log("DataEditor.transfer - wire transfer: "+wireTransfer)
         const withdrawResult = await this.withdraw(
             username, tokenId, fromAccountId, amount, note, 
-            true, toAccountId, wireTransfer, date, etlAuth,
+            true, toAccountId, wireTransfer,
         )
         var depositResult = {
             databaseError: false
@@ -474,7 +413,7 @@ class DataEditor {
         if (!wireTransfer) {
             depositResult = await this.deposit(
                 username, tokenId, toAccountId, amount, note, 
-                true, fromAccountId, null, etlAuth
+                true, fromAccountId,
             ) 
         }
         if (withdrawResult.databaseError || depositResult.databaseError) {
@@ -483,14 +422,11 @@ class DataEditor {
         return withdrawResult
     }
     async deposit(username, tokenId, accountId, amount, note, 
-        forTransfer=false, logFromAccountID="", date=null, etlAuth=false,
+        forTransfer=false, logFromAccountID="",
     ) {
         let checkAuthTokenResult = await this.checkAuthToken(tokenId)
-        if (!checkAuthTokenResult || (!etlAuth && checkAuthTokenResult.username != username)) {
+        if (!checkAuthTokenResult || checkAuthTokenResult.username != username) {
             return 'bad token'
-        }
-        if (etlAuth) {
-            checkAuthTokenResult = await this.getUserData(username)
         }
         if (checkAuthTokenResult.databaseError) {
             return { databaseError: true }
@@ -508,7 +444,7 @@ class DataEditor {
                 toAccount: accountId,
                 note: note,
                 transactionType: "transfer",
-                timestamp: (new Date(date ?? Date.now())).getTime()
+                timestamp: (new Date(Date.now())).getTime()
             })
         } else {
             account.transactions.push({
@@ -517,7 +453,7 @@ class DataEditor {
                 toAccount: accountId,
                 note: note,
                 transactionType: "deposit",
-                timestamp: (new Date(date ?? Date.now())).getTime()
+                timestamp: (new Date(Date.now())).getTime()
             })
         }
         const updateUserDataResult = await this.firestoreUpdate('users', checkAuthTokenResult.id, checkAuthTokenResult)
@@ -527,15 +463,12 @@ class DataEditor {
         return 'success'
     }
     async withdraw(username, tokenId, accountId, amount, note, 
-        forTransfer=false, logToAccountID="", forWireTransfer=false, date=null, etlAuth=false,
+        forTransfer=false, logToAccountID="", forWireTransfer=false,
     ) {
         console.log("DataEditor.withdraw - forWireTransfer:"+forWireTransfer)
         let checkAuthTokenResult = await this.checkAuthToken(tokenId)
-        if (!checkAuthTokenResult || (!etlAuth && checkAuthTokenResult.username != username)) {
+        if (!checkAuthTokenResult || checkAuthTokenResult.username != username) {
             return 'bad token'
-        }
-        if (etlAuth) {
-            checkAuthTokenResult = await this.getUserData(username)
         }
         if (checkAuthTokenResult.databaseError) {
             return { databaseError: true }
@@ -553,7 +486,7 @@ class DataEditor {
                 toAccount: logToAccountID,
                 note: note,
                 transactionType: "transfer",
-                timestamp: (new Date(date ?? Date.now())).getTime(),
+                timestamp: (new Date(Date.now())).getTime(),
                 hideFromTable: !forWireTransfer
             })
         } else {
@@ -563,7 +496,7 @@ class DataEditor {
                 toAccount: "Bank Service",
                 note: note,
                 transactionType: "withdraw",
-                timestamp: (new Date(date ?? Date.now())).getTime()
+                timestamp: (new Date(Date.now())).getTime()
             })
         }
         const updateUserDataResult = await this.firestoreUpdate('users', checkAuthTokenResult.id, checkAuthTokenResult)
@@ -571,6 +504,30 @@ class DataEditor {
             return { databaseError: true }
         }
         return 'success'
+    }
+
+    appendTransaction(user, transaction) {
+        console.log('appendTransaction - start')
+        if (!!transaction.fromAccount && transaction.fromAccount !== "Bank Service") {
+            console.log('appendTransaction - appending account withdraw')
+            user.accounts
+                .find(acc => acc.accountNumber === transaction.fromAccount)
+                .transactions
+                .push(
+                    transaction.transactionType === "transfer"
+                        ? {...transaction, hideFromTable: true} : transaction
+                )
+        }
+
+        if (!!transaction.toAccount && transaction.toAccount !== "Bank Service") {
+            console.log('appendTransaction - appending account deposit')
+            user.accounts
+                .find(acc => acc.accountNumber === transaction.toAccount)
+                .transactions
+                .push(transaction)
+        }
+
+        return user
     }
 }
 
