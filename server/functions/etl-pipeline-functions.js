@@ -17,35 +17,37 @@ module.exports = (app, dataEditor) => {
             const badDataErrors = []
 
             users.forEach(async (user) => {
-                try {
-                    dataEditor.createUserETL(user)
-                } catch (error) {
-                    badDataErrors.push({
-                        error,
-                        item: user,
-                    })
-                }
+                user.accounts = []
             })
 
             accounts.forEach(async (account) => {
-                try {
-                    dataEditor.createAccountETL(account)
-                } catch (error) {
-                    badDataErrors.push({
-                        error,
-                        item: account,
-                    })
+                account.transactions = []
+
+                const user = users.find(user => user.username === account.username)
+                
+                if (!!user) {
+                    user.accounts.push(account)
+                } else {
+                    badDataErrors.push(
+                        `Uploaded account #${account.accountNumber} does not belong to an uploaded user.`
+                    )
                 }
             })
 
             transactions.forEach(async (transaction) => {
-                try {
-                    dataEditor.createTransactionETL(transaction)
-                } catch (error) {
-                    badDataErrors.push({
-                        error,
-                        item: transaction,
-                    })
+                const user = users.find(user =>
+                    user.accounts.some(acc => 
+                        acc.accountNumber === transaction.toAccount 
+                        || acc.accountNumber === transaction.fromAccount
+                    )
+                )
+
+                if (!!user) {
+                    dataEditor.appendTransaction(user, transaction)
+                } else {
+                    badDataErrors.push(
+                        `Uploaded transaction from ${transaction.fromAccount} to ${transaction.toAccount} contains at least one unknown account number.`
+                    )
                 }
             })
 

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        body {
+            padding-top: 60px;
+            background-color: #444;
+        }
+        table {
+            margin-top: 20px;
+            background-color: #bbb;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-wrapper blue">
+            <ul id="nav-mobile" class="left">
+                <li><a href="/dashboard/users">User Dump</a></li>
+                <li><a href="/dashboard/logs">Log Dump</a></li>
+                <li><a href="/dashboard/etl">ETL Services</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container" id="content"></div>
+
+    <script>
+        $(document).ready(function() {
+            $.get("/log-dump", function(data) {
+                data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                let table = `<table class='striped'><thead><tr>
+                    <th>IP Address</th><th>Username</th><th>Timestamp</th><th>Description</th>
+                </tr></thead><tbody>`;
+                data.forEach(log => {
+                    table += `<tr><td>${log.ipAddress}</td><td>${log.username}</td><td>${log.timestamp}</td><td>${log.description}</td></tr>`;
+                });
+                table += "</tbody></table>";
+                $('#content').html(table);
+            });
+        });
+    </script>
+</body>
+</html>
