@@ -1,3 +1,4 @@
 !secrets/serviceAccountKey.json
 /node_modules
 ip-log.txt
+/test-data

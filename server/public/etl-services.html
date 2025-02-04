@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        body {
+            padding-top: 60px;
+            background-color: #444;
+        }
+        #services {
+            margin-top: 20px;
+            background-color: #bbb;
+            padding: 40px;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-wrapper blue">
+            <ul id="nav-mobile" class="left">
+                <li><a href="/dashboard/users">User Dump</a></li>
+                <li><a href="/dashboard/logs">Log Dump</a></li>
+                <li><a href="/dashboard/etl">ETL Services</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container" id="content"></div>
+
+    <script>
+        $(document).ready(function() {
+            $('#content').html(`
+                <div id="services">
+                    <div class='row'>
+                        <div class='col s6 offset-s3'>
+                            <h5 class='center-align'>Upload your own user data:</h5>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class='col s6 offset-s3'>
+                            <input type='file' id='jsonFile' />
+                            <button id='uploadBtn' class='btn blue'>Upload</button>
+                        </div>
+                    </div>
+                    <div class='row mt-4'>
+                        <div class='col s6 offset-s3 pt-4'>
+                            <h5 class='center-align'>Generate a user:</h5>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class='col s3 offset-s4'>
+                            <button id='newUserBtn' class='btn green center-align'>Create New User</button>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class='col s6 offset-s3'>
+                            <div id='newUserInfo'></div>
+                        </div>
+                    </div>
+                </div>
+            `);
+            
+            $("#uploadBtn").click(function() {
+                let file = $("#jsonFile")[0].files[0];
+                if (file) {
+                    let reader = new FileReader();
+                    reader.onload = function(e) {
+                        $.post("/etl/uploads", JSON.parse(e.target.result), function(response) {
+                            alert("File uploaded successfully");
+                        });
+                    };
+                    reader.readAsText(file);
+                }
+            });
+            
+            $("#newUserBtn").click(function() {
+                $.post("/etl/new-user", {}, function(response) {
+                    $("#newUserInfo").html(`<p>Username: ${response.username}</p><p>Password: ${response.password}</p>`);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
