@@ -18,14 +18,9 @@ export const loginError = (errorMessage) => ({
 
 export const processLoginResult = (loginResponse) => {
     if (!!loginResponse.incorrectMsg) {
-        return loginError({
-            errorMessage: loginResponse.incorrectMsg,
-        })
+        return loginError(loginResponse.incorrectMsg)
     } else {
-        return loginSuccess({
-            userData: loginResponse.user,
-            authToken: loginResponse.token,
-        })
+        return loginSuccess(loginResponse.user, loginResponse.token)
     }
 }
 
@@ -42,13 +37,8 @@ export const signupError = (errorMessage) => ({
 
 export const processSignupResult = (signupResponse) => {
     if (!!signupResponse.incorrectMsg) {
-        return signupError({
-            errorMessage: signupResponse.incorrectMsg,
-        })
+        return signupError(signupResponse.incorrectMsg)
     } else {
-        return signupSuccess({
-            userData: signupResponse.user,
-            authToken: signupResponse.token,
-        })
+        return signupSuccess(signupResponse.user, signupResponse.token)
     }
 }

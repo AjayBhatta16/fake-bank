@@ -28,7 +28,7 @@ export const user = (state = initialState, action) => {
                 userData: {
                     ...state.userData,
                     accounts: state.userData.accounts.filter(
-                        acc => acc.accountNumber !== action.accountID,
+                        acc => acc.accountNumber.toString() !== action.accountID?.toString(),
                     )
                 }
             }

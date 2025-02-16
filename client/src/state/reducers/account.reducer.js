@@ -1,9 +1,13 @@
 import * as AccountActions from '../actions/account.actions'
+import * as UserActions from '../actions/user.actions'
+
+import parseTransactionList from '../../utils/parse-transaction-list'
 
 const initialState = {
     errorMessage: '',
     successMessage: '',
     transactionHistory: [],
+    selectedAccount: null,
 }
 
 export const accounts = (state = initialState, action) => {
@@ -30,6 +34,16 @@ export const accounts = (state = initialState, action) => {
                     ...state.transactionHistory,
                     action.transaction,
                 ],
+            }
+        case AccountActions.TypeConstants.ACCOUNT_SELECTED_FOR_EXCHANGE:
+            return {
+                ...state,
+                selectedAccount: action.account,
+            }
+        case UserActions.TypeConstants.LOGIN_SUCCESS: 
+            return {
+                ...state,
+                transactionHistory: parseTransactionList(action.userData.accounts)
             }
         default:
             return state

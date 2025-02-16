@@ -4,6 +4,7 @@ export const TypeConstants = {
     DELETE_ACCOUNT_SUCCESS: 'DELETE_ACCOUNT_SUCCESS',
     CREATE_ACCOUNT_SUCCESS: 'CREATE_ACCOUNT_SUCCESS',
     TRANSACTIONS_LOADED: 'TRANSACTIONS_LOADED',
+    ACCOUNT_SELECTED_FOR_EXCHANGE: 'ACCOUNT_SELECTED_FOR_EXCHANGE',
 }
 
 export const ExchangeType = {
@@ -46,7 +47,7 @@ function getExchangeType(typeParam, toAccountID) {
 }
 
 export const processExchangeResult = (exchangeResult, type) => {
-    if (!!exchangeResult.errMsg || exchangeResult.exchangeRes.status !== '200') {
+    if (!!exchangeResult.errMsg || exchangeResult.exchangeRes?.status !== '200') {
         return exchangeError(exchangeResult.errMsg ?? 'An unknown error has occurred')
     }
 
@@ -72,4 +73,9 @@ export const createAccountSuccess = (account) => ({
 export const transactionsLoaded = (transactions) => ({
     type: TypeConstants.TRANSACTIONS_LOADED,
     transactions,
+})
+
+export const accountSelectedForExchange = (account) => ({
+    type: TypeConstants.ACCOUNT_SELECTED_FOR_EXCHANGE,
+    account,
 })
