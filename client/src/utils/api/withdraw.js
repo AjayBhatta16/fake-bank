@@ -24,15 +24,18 @@ export default async function withdraw(tokenID, from, amount, note, activeUserDa
             if (!account.transactions) {
                 account.transactions = []
             }
-            account.transactions.push({
-                amount: amount,
-                fromAccount: from,
-                toAccount: "Bank Service",
-                timestamp: (new Date(Date.now())).getTime(),
-                transactionType: "withdraw",
-                note: note,
-            })
+            account.transactions.push()
         }
     })
-    return { exchangeRes, newUserData: activeUserData }
+    return { 
+        exchangeRes, 
+        transaction: {
+            amount,
+            fromAccount: from,
+            toAccount: "Bank Service",
+            timestamp: (new Date(Date.now())).getTime(),
+            transactionType: "withdraw",
+            note,
+        } 
+    }
 }

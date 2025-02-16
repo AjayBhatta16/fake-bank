@@ -3,166 +3,116 @@ import StandardContainer from '../StandardContainer'
 import FormSubmitButton from '../common/FormSubmitButton'
 import FormErrorText from '../common/FormErrorText'
 import FormTextInput from '../common/FormTextInput'
+import FormContainer from '../common/FormContainer'
 import MaybeDisplay from '../common/MaybeDisplay'
 import AccountDropdown from './AccountDropdown'
-import stopRedirect from '../../utils/stop-redirect'
 import formatExchangeWindowTitle from '../../utils/format-exchange-window-title'
 import openAccount from '../../utils/api/open-account'
 import deposit from '../../utils/api/deposit'
 import internalTransfer from '../../utils/api/internal-transfer'
 import withdraw from '../../utils/api/withdraw'
 import externalTransfer from '../../utils/api/external-transfer'
+import * as AccountActions from '../../state/actions/account.actions'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useSelector, useDispatch } from 'react-redux'
 
 export default function ExchangeScreen(props) {
-    const [errMsg, setErrMsg] = useState('')
-    const [toValue, setToValue] = useState(props.target.accountNumber ? props.target.accountNumber.toString() : null)
-    const [fromValue, setFromValue] = useState(props.target.accountNumber ? props.target.accountNumber.toString() : null)
+    const [toValue, setToValue] = useState(props.target.accountNumber?.toString())
+    const [fromValue, setFromValue] = useState(props.target.accountNumber?.toString())
+
     const amountRef = useRef(null)
     const typeRef = useRef(null)
     const wireNumberRef = useRef(null)
+
     const navigate = useNavigate()
-    if (!props.user.username) {
-        navigate('/login')
-    }
     const { transactionType } = useParams()
-    const handleAdd = async (type, amount) => {
-        const accountCreated = await openAccount(props.user.username, props.token.id, type, amount)
-        if (accountCreated.errMsg) {
-            setErrMsg(accountCreated.errMsg)
-            return false
-        }
-        props.user.accounts.push(accountCreated)
-        props.setUser(props.user)
-        return true 
-    }
-    const handleDeposit = async (to, amount, note) => {
-        const depositAction = await deposit(props.token.id, to, amount, note, props.user)
-        if (depositAction.errMsg) {
-            setErrMsg(depositAction.errMsg)
-            return false
-        }
-        props.setUser(depositAction.newUserData)
-        return depositAction.exchangeRes.status == '200'
-    }
-    const handleTransfer = async (from, to, amount, note) => {
-        const internalTransferAction = await internalTransfer(props.token.id, from, to, amount, note, props.user)
-        if (internalTransferAction.errMsg) {
-            setErrMsg(internalTransferAction.errMsg)
-            return false
-        }
-        props.setUser(internalTransferAction.newUserData)
-        return internalTransferAction.exchangeRes.status == '200'
-    }
-    const handleWithdraw = async (from, amount, note) => {
-        const withdrawAction = await withdraw(props.token.id, from, amount, note, props.user)
-        if (withdrawAction.errMsg) {
-            setErrMsg(withdrawAction.errMsg)
-            return false
-        }
-        props.setUser(withdrawAction.newUserData)
-        return withdrawAction.exchangeRes.status == '200'
-    }
-    const handleWireTransfer = async (from, amount, note) => {
-        const externalTransferAction = await externalTransfer(props.token.id, from, amount, note, wireNumberRef.current.value, props.user)
-        if (externalTransferAction.errMsg) {
-            setErrMsg(externalTransferAction.errMsg)
-            return false
-        }
-        props.setUser(externalTransferAction.newUserData)
-        return externalTransferAction.exchangeRes.status == '200'
-    }
+
+    const userData = useSelector(state => state.user.userData)
+    const tokenID = useSelector(state => state.user.authToken.id)
+    const errorMessage = useSelector(state => state.account.errorMessage)
+    
+    const dispatch = useDispatch()
+    
     const handleSubmit = async event => {
         event.preventDefault()
+
         let amount = parseFloat(amountRef.current.value)
         if(!amount && amount != 0) {
-            setErrMsg('Amount must be a numerical value')
-            return 
+            return dispatch(AccountActions.exchangeError({
+                errorMessage: 'Amount must be a numerical value',
+            }))
         }
+
         let type = typeRef.current.value.toLowerCase()
         if(transactionType == 'add' && type != 'savings' && type != 'checking') {
-            setErrMsg('Type must be savings or checking')
-            return 
+            return dispatch(AccountActions.exchangeError({
+                errorMessage: 'Type must be savings or checking',
+            }))
         }
-        let exchangeResult = false 
+
+        let exchangeResult = null 
         switch(transactionType) {
             case 'add':
-                exchangeResult = await handleAdd(type, amount)
-                break
+                exchangeResult = await openAccount(userData.username, tokenID, type, amount)
             case 'deposit':
-                exchangeResult = await handleDeposit(toValue, amount, typeRef.current.value)
-                break 
+                exchangeResult = await deposit(tokenID, toValue, amount, typeRef.current.value, userData)
             case 'transfer':
                 if (toValue == 'external') {
-                    exchangeResult = await handleWireTransfer(fromValue, amount, typeRef.current.value)
+                    exchangeResult = await externalTransfer(tokenID, fromValue, amount, typeRef.current.value, wireNumberRef.current.value, userData)
                 } else {
-                    exchangeResult = await handleTransfer(fromValue, toValue, amount, typeRef.current.value)
+                    exchangeResult = await internalTransfer(tokenID, fromValue, toValue, amount, typeRef.current.value, userData)
                 }
-                break 
             case 'withdraw':
-                exchangeResult = await handleWithdraw(fromValue, amount, typeRef.current.value)
-                break 
-            default:
-                setErrMsg('ERROR: Invalid Transaction Type')
-                return 
+                exchangeResult = await withdraw(tokenID, fromValue, amount, typeRef.current.value, userData)
         }
-        if(!exchangeResult) {
-            if(errMsg != 'Your login session has expired. Please refresh the page.') {
-                console.log(exchangeResult)
-                setErrMsg('An unknown error has occurred')
-            }
-            return
-        }
+
+        dispatch(AccountActions.processExchangeResult(exchangeResult))
+
         navigate('/dashboard')
     }
     return (
         <StandardContainer>
-            <div className="wrapper bg-dark">
-                <div id="formContent">
-                    <h1 className="text-white text-center">{formatExchangeWindowTitle(transactionType)}</h1>
-                    <form className="form" onSubmit={stopRedirect}>
-                        <MaybeDisplay if={(transactionType == 'withdraw' || transactionType == 'transfer')}>
-                            <AccountDropdown
-                                formName="from"
-                                displayName="From"
-                                changeAction={event => setFromValue(event.target.value)}
-                                accounts={[props.target]}
-                            />
-                        </MaybeDisplay>
-                        <MaybeDisplay if={(transactionType == 'deposit' || transactionType == 'transfer')}>
-                            <AccountDropdown 
-                                formName="to"
-                                displayName="To"
-                                changeAction={event => setToValue(event.target.value)}
-                                accounts={transactionType == 'deposit' ? [props.target] : [...props.user.accounts]}
-                                includeExternalOption={transactionType == 'transfer'}
-                            />
-                        </MaybeDisplay>
-                        <MaybeDisplay if={(transactionType == 'transfer' && toValue == 'external')}>
-                            <FormTextInput 
-                                domRef={wireNumberRef}
-                                formName="wire-number"
-                                displayName="Wire Number"
-                            />
-                        </MaybeDisplay>
-                        <FormTextInput 
-                            domRef={typeRef}
-                            formName="type"
-                            displayName={transactionType == 'add' ? 'Type' : 'Note'}
-                        />
-                        <FormTextInput 
-                            domRef={amountRef}
-                            formName="amount"
-                            displayName="Amount"
-                        />
-                        <FormErrorText text={errMsg} />
-                        <FormSubmitButton 
-                            onClick={handleSubmit}
-                            displayText="Submit"
-                        />
-                    </form>
-                </div>
-            </div>
+            <FormContainer headerText={formatExchangeWindowTitle(transactionType)}>
+                <MaybeDisplay if={(transactionType == 'withdraw' || transactionType == 'transfer')}>
+                    <AccountDropdown
+                        formName="from"
+                        displayName="From"
+                        changeAction={event => setFromValue(event.target.value)}
+                        accounts={[props.target]}
+                    />
+                </MaybeDisplay>
+                <MaybeDisplay if={(transactionType == 'deposit' || transactionType == 'transfer')}>
+                    <AccountDropdown 
+                        formName="to"
+                        displayName="To"
+                        changeAction={event => setToValue(event.target.value)}
+                        accounts={transactionType == 'deposit' ? [props.target] : [...userData.accounts]}
+                        includeExternalOption={transactionType == 'transfer'}
+                    />
+                </MaybeDisplay>
+                <MaybeDisplay if={(transactionType == 'transfer' && toValue == 'external')}>
+                    <FormTextInput 
+                        domRef={wireNumberRef}
+                        formName="wire-number"
+                        displayName="Wire Number"
+                    />
+                </MaybeDisplay>
+                <FormTextInput 
+                    domRef={typeRef}
+                    formName="type"
+                    displayName={transactionType == 'add' ? 'Type' : 'Note'}
+                />
+                <FormTextInput 
+                    domRef={amountRef}
+                    formName="amount"
+                    displayName="Amount"
+                />
+                <FormErrorText text={errorMessage} />
+                <FormSubmitButton 
+                    onClick={handleSubmit}
+                    displayText="Submit"
+                />
+            </FormContainer>
         </StandardContainer>
     )
 }
