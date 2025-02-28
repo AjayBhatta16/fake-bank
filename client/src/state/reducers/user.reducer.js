@@ -46,12 +46,16 @@ export const user = (state = initialState, action) => {
         case AccountActions.TypeConstants.EXCHANGE_SUCCESS:
             const newUserData = {...state.userData}
 
+            console.log(action, newUserData)
+
             newUserData.accounts.forEach(acc => {
-                if (acc.accountNumber === action.transaction.toAccount) {
+                if (acc.accountNumber.toString() === action.transaction.toAccount.toString()) {
+                    console.log(`Adding $${action.transaction.amount} to account ${acc.accountNumber}`)
                     acc.amount += action.transaction.amount
                 }
 
-                if (acc.accountNumber === action.transaction.fromAccount) {
+                if (acc.accountNumber.toString() === action.transaction.fromAccount.toString()) {
+                    console.log(`Subtracting $${action.transaction.amount} from account ${acc.accountNumber}`)
                     acc.amount -= action.transaction.amount
                 }
             })

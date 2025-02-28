@@ -88,7 +88,7 @@ export default function ExchangeScreen() {
                         formName="from"
                         displayName="From"
                         changeAction={event => setFromValue(event.target.value)}
-                        accounts={transactionType === 'withdraw' ? [target] : [...userData.accounts]}
+                        accounts={transactionType === 'withdraw' ? [target] : userData?.accounts ?? []}
                     />
                 </MaybeDisplay>
                 <MaybeDisplay if={(transactionType === 'deposit' || transactionType === 'transfer')}>
@@ -96,7 +96,7 @@ export default function ExchangeScreen() {
                         formName="to"
                         displayName="To"
                         changeAction={event => setToValue(event.target.value)}
-                        accounts={transactionType === 'deposit' ? [target] : [...userData.accounts]}
+                        accounts={transactionType === 'deposit' ? [target] : userData?.accounts ?? []}
                         includeExternalOption={transactionType === 'transfer'}
                     />
                 </MaybeDisplay>
