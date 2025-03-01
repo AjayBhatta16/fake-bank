@@ -3,6 +3,7 @@ import env from '../../env'
 
 const deleteAccount = async (username, tokenID, accNumber) => {
     let response
+
     await axios.post(`${env.endpoint}/account/delete`, {
         username: username,
         tokenId: tokenID,
@@ -28,7 +29,9 @@ const deleteAccount = async (username, tokenID, accNumber) => {
             msg: 'An unknown error has occurred'
         }
     })
-    console.log(response)
+
+    console.log('deleteAccount', response)
+
     return response
 }
 export default deleteAccount

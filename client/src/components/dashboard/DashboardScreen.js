@@ -7,10 +7,12 @@ import AccountTable from './AccountTable'
 import parseName from '../../utils/parse-name'
 import { useSelector } from 'react-redux'
 import { useRefresh } from '../../hooks/useRefresh'
+import { useSmallTextResetOnNavigate } from '../../hooks/useSmallTextResetOnNavigate'
 
 export default function DashboardScreen() {
     useRefresh()
-    
+    useSmallTextResetOnNavigate()
+
     const errorMessage = useSelector(state => state.accounts.errorMessage)
     const successMessage = useSelector(state => state.accounts.successMessage)
     const fullName = useSelector(state => parseName(state.user.userData.fullName))

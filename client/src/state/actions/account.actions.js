@@ -5,6 +5,7 @@ export const TypeConstants = {
     CREATE_ACCOUNT_SUCCESS: 'CREATE_ACCOUNT_SUCCESS',
     TRANSACTIONS_LOADED: 'TRANSACTIONS_LOADED',
     ACCOUNT_SELECTED_FOR_EXCHANGE: 'ACCOUNT_SELECTED_FOR_EXCHANGE',
+    RESET_SMALL_TEXT: 'RESET_SMALL_TEXT',
 }
 
 export const ExchangeType = {
@@ -79,3 +80,5 @@ export const accountSelectedForExchange = (account) => ({
     type: TypeConstants.ACCOUNT_SELECTED_FOR_EXCHANGE,
     account,
 })
+
+export const resetSmallText = () => ({ type: TypeConstants.RESET_SMALL_TEXT })

@@ -18,6 +18,7 @@ export const accounts = (state = initialState, action) => {
                 transactionHistory: action.transactions,
             }
         case AccountActions.TypeConstants.EXCHANGE_ERROR:
+            console.log('EXCHANGE_ERROR', action)
             return {
                 ...state,
                 errorMessage: action.errorMessage,
@@ -49,6 +50,12 @@ export const accounts = (state = initialState, action) => {
             return {
                 ...state,
                 transactionHistory: parseTransactionList(action.userData.accounts),
+                errorMessage: '',
+                successMessage: '',
+            }
+        case AccountActions.TypeConstants.RESET_SMALL_TEXT:
+            return {
+                ...state,
                 errorMessage: '',
                 successMessage: '',
             }

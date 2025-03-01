@@ -23,6 +23,7 @@ export const user = (state = initialState, action) => {
                 errorMessage: action.errorMessage,
             }
         case AccountActions.TypeConstants.DELETE_ACCOUNT_SUCCESS:
+            console.log('DELETE_ACCOUNT_SUCCESS', state.userData, action)
             return {
                 ...state,
                 userData: {

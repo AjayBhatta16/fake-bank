@@ -16,9 +16,11 @@ import * as AccountActions from '../../state/actions/account.actions'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { useRefresh } from '../../hooks/useRefresh'
+import { useSmallTextResetOnNavigate } from '../../hooks/useSmallTextResetOnNavigate'
 
 export default function ExchangeScreen() {
     useRefresh()
+    useSmallTextResetOnNavigate()
 
     const amountRef = useRef(null)
     const typeRef = useRef(null)
@@ -49,9 +51,7 @@ export default function ExchangeScreen() {
 
         let type = typeRef.current.value.toLowerCase()
         if(transactionType === 'add' && type !== 'savings' && type !== 'checking') {
-            return dispatch(AccountActions.exchangeError({
-                errorMessage: 'Type must be savings or checking',
-            }))
+            return dispatch(AccountActions.exchangeError('Type must be savings or checking'))
         }
 
         let exchangeResult = null 
@@ -74,11 +74,22 @@ export default function ExchangeScreen() {
                 break
         }
 
-        dispatch(AccountActions.processExchangeResult(exchangeResult))
+        console.log('ExchangeScreen.handleSubmit', exchangeResult)
 
-        if (!exchangeResult.errMsg && (exchangeResult.exchangeRes?.status ?? '200') === '200') {
-            navigate('/dashboard')
+        if (
+            !!exchangeResult.errMsg 
+            || (exchangeResult.exchangeRes?.status ?? '200') !== '200'
+        ) {
+            return dispatch(AccountActions.exchangeError(exchangeResult.errMsg))
         }
+
+        if (transactionType === 'add') {
+            dispatch(AccountActions.createAccountSuccess(exchangeResult))
+        } else {
+            dispatch(AccountActions.processExchangeResult(exchangeResult))
+        }
+
+        navigate('/dashboard')
     }
     return (
         <StandardContainer>

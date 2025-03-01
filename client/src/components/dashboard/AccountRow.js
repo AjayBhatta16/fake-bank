@@ -16,11 +16,11 @@ export default function AccountRow(props) {
 
     const handleDelete = async account => {
         const deleteResult = await deleteAccount(userData.username, tokenID, account.accountNumber)
+
+        console.log('AccountRow.handleDelete', deleteResult)
+
         if (deleteResult.success) {
-            dispatch(AccountActions.deleteAccountSuccess({
-                accountID: account.accountNumber,
-                successMessage: deleteResult.msg,
-            }))
+            dispatch(AccountActions.deleteAccountSuccess(account.accountNumber, deleteResult.msg))
         } else {
             dispatch(AccountActions.exchangeError({
                 errorMessage: deleteResult.msg,
