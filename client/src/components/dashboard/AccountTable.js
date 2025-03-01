@@ -1,10 +1,16 @@
 import React from "react"
 import AccountRow from "./AccountRow"
+import { useSelector } from "react-redux"
+import { useNavigate } from "react-router-dom"
 
-export default function AccountTable(props) {
+export default function AccountTable() {
+    const navigate = useNavigate()
+    const accounts = useSelector(state => state.user.userData.accounts)
+
     const handleAdd = () => {
-        props.setScreen('/accounts/add')
+        navigate('/accounts/add')
     }
+
     return (
         <div className="table-responsive">
             <table className="table table-striped table-hover table-dark">
@@ -22,19 +28,16 @@ export default function AccountTable(props) {
                     </tr>
                 </thead>
                 <tbody>
-                    {props.dashboardUser.accounts.length == 0 ? (
+                    {!accounts || accounts.length == 0 ? (
                         <tr>
                             <td colspan="7">No accounts found for this user</td>
                         </tr>
                     ) : null}
                     {
-                        props.dashboardUser.accounts.map(account => (
+                        accounts?.map(account => (
                             <AccountRow 
                                 account={account} 
                                 key={account.accountNumber}
-                                setScreen={props.setScreen} 
-                                setTarget={props.setTarget}
-                                handleDelete={props.handleDelete}
                             />    
                         ))
                     }

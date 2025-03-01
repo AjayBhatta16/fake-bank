@@ -18,21 +18,16 @@ export default async function withdraw(tokenID, from, amount, note, activeUserDa
             errMsg: 'An unknown error message has occurred.'
         }
     })
-    activeUserData.accounts.forEach(account => {
-        if(account.accountNumber == parseInt(from)) {
-            account.amount -= amount
-            if (!account.transactions) {
-                account.transactions = []
-            }
-            account.transactions.push({
-                amount: amount,
-                fromAccount: from,
-                toAccount: "Bank Service",
-                timestamp: (new Date(Date.now())).getTime(),
-                transactionType: "withdraw",
-                note: note,
-            })
-        }
-    })
-    return { exchangeRes, newUserData: activeUserData }
+    
+    return { 
+        exchangeRes, 
+        transaction: {
+            amount,
+            fromAccount: from,
+            toAccount: "Bank Service",
+            timestamp: (new Date(Date.now())).getTime(),
+            transactionType: "withdraw",
+            note,
+        } 
+    }
 }

@@ -3,7 +3,7 @@ import React from "react"
 export default function FormTextInput(props) {
     return (
         <div className="form-group">
-            <label for={props.formName} className="text-info">{props.displayName}:</label><br />
+            <label htmlFor={props.formName} className="text-info">{props.displayName}:</label><br />
             <input 
                 type={props.password ? "password" : "text"}
                 ref={props.domRef}

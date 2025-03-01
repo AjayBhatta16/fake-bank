@@ -2,12 +2,37 @@ import React from 'react'
 import formatCurrency from '../../utils/format-currency'
 import formatAccountNumber from '../../utils/format-account-number'
 import AccountActionButton from './AccountActionButton'
+import deleteAccount from '../../utils/api/delete-account'
+import * as AccountActions from '../../state/actions/account.actions'
+import { useDispatch, useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 
 export default function AccountRow(props) {
-    const handleExchange = exchangeType => {
-        props.setTarget(props.account)
-        props.setScreen('/accounts/'+exchangeType)
+    const dispatch = useDispatch()
+    const navigate = useNavigate()
+
+    const tokenID = useSelector(state => state.user.authToken.id)
+    const userData = useSelector(state => state.user.userData)
+
+    const handleDelete = async account => {
+        const deleteResult = await deleteAccount(userData.username, tokenID, account.accountNumber)
+
+        console.log('AccountRow.handleDelete', deleteResult)
+
+        if (deleteResult.success) {
+            dispatch(AccountActions.deleteAccountSuccess(account.accountNumber, deleteResult.msg))
+        } else {
+            dispatch(AccountActions.exchangeError({
+                errorMessage: deleteResult.msg,
+            }))
+        }
     }
+
+    const handleExchange = exchangeType => {
+        dispatch(AccountActions.accountSelectedForExchange(props.account))
+        navigate('/accounts/'+exchangeType)
+    }
+
     return (
         <tr>
             <td>
@@ -39,7 +64,7 @@ export default function AccountRow(props) {
             </td>
             <td>
                 <AccountActionButton 
-                    action={() => props.handleDelete(props.account)}
+                    action={() => handleDelete(props.account)}
                     displayText="Delete"
                 />
             </td>

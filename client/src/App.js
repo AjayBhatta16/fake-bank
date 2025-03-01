@@ -1,5 +1,4 @@
 import './App.css';
-import { useState } from 'react'
 import DashboardScreen from './components/dashboard/DashboardScreen'
 import ExchangeScreen from './components/exchange/ExchangeScreen'
 import HomeScreen from './components/home/HomeScreen'
@@ -10,48 +9,17 @@ import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 
 // testing 4
 function App() {
-  const [token, setToken] = useState({})
-  const [user, setUser] = useState({})
-  const [targetAccount, setTargetAccount] = useState({})
   document.title = env.bankName
 
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={ <><Outlet/></> }>
-          <Route index element={
-            <HomeScreen />
-          }/>
-          <Route path="login" element={
-            <LoginScreen 
-              setUser={setUser}
-              setToken={setToken}
-            />
-          }/>
-          <Route path="signup" element={
-            <SignupScreen
-              setUser={setUser}
-              setToken={setToken}
-            />
-          }/>
-          <Route path="dashboard" element={
-            <DashboardScreen
-              setTarget={setTargetAccount}
-              setUser={setUser}
-              setToken={setToken}
-              user={user}
-              token={token}
-            />
-          }/>
-          <Route path="accounts/:transactionType" element={
-            <ExchangeScreen
-              setUser={setUser}
-              setToken={setToken}
-              user={user}
-              token={token}
-              target={targetAccount}
-            />
-          }/>
+          <Route index element={ <HomeScreen /> }/>
+          <Route path="login" element={ <LoginScreen/> }/>
+          <Route path="signup" element={ <SignupScreen/> }/>
+          <Route path="dashboard" element={ <DashboardScreen/> }/>
+          <Route path="accounts/:transactionType" element={ <ExchangeScreen/> }/>
         </Route>
       </Routes>
     </BrowserRouter>
