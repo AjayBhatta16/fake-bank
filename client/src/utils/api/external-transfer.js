@@ -21,22 +21,16 @@ export default async function externalTransfer(tokenID, from, amount, note, wire
             errMsg: 'An unknown error message has occurred.'
         }
     })
-    activeUserData.accounts.forEach(account => {
-        if(account.accountNumber == parseInt(from)) {
-            account.amount -= amount
-            if (!account.transactions) {
-                account.transactions = []
-            }
-            console.log("adding to UI logs")
-            account.transactions.push({
-                amount: amount,
-                fromAccount: from,
-                toAccount: `Wire ${wireNumber}`,
-                timestamp: (new Date(Date.now())).getTime(),
-                transactionType: "transfer",
-                note: note,
-            })
+    
+    return { 
+        exchangeRes, 
+        transaction: {
+            amount: amount,
+            fromAccount: from,
+            toAccount: `Wire ${wireNumber}`,
+            timestamp: (new Date(Date.now())).getTime(),
+            transactionType: "transfer",
+            note: note,
         }
-    })
-    return { exchangeRes, newUserData: activeUserData }
+    }
 }

@@ -1,7 +1,10 @@
 import React from "react"
 import TransactionRow from "./TransactionRow"
+import { useSelector } from "react-redux"
 
-export default function TransactionTable(props) {
+export default function TransactionTable() {
+    const transactions = useSelector(state => state.accounts.transactionHistory)
+
     return (
         <div className='table-responsive mt-3'>
             <table className='table table-striped table-hover table-dark'>
@@ -19,13 +22,13 @@ export default function TransactionTable(props) {
                     </tr>
                 </thead>
                 <tbody>
-                    {props.transactions.length == 0 ? (
+                    {transactions.length == 0 ? (
                         <tr>
                             <td colspan="6">No accounts found for this user</td>
                         </tr>
                     ) : null}
                     {
-                        props.transactions.map(txn => (
+                        transactions.map(txn => (
                             <TransactionRow transaction={txn} key={txn.timestamp} />
                         ))
                     }
