@@ -18,7 +18,7 @@ const signup = async (user) => {
     })
     if(!token.id) {
         return {
-            incorrectMsg: 'Incorrect username or password'
+            incorrectMsg: token.errorMessage
         }
     }
     await axios.post(`${env.endpoint}/token/verify`, {

@@ -8,6 +8,7 @@ import FormSubmitButton from '../common/FormSubmitButton'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import * as UserActions from '../../state/actions/user.actions'
+import * as GeneralActions from '../../state/actions/general.actions'
 import FormContainer from '../common/FormContainer'
 
 export default function LoginScreen() {
@@ -22,8 +23,12 @@ export default function LoginScreen() {
     const handleLogin = async (event) => {
         event.preventDefault()
 
+        dispatch(GeneralActions.requestStart())
+
         const loginResult = await login(usernameRef.current.value, passwordRef.current.value)
+
         dispatch(UserActions.processLoginResult(loginResult))
+        dispatch(GeneralActions.requestEnd())
         
         if (!loginResult.incorrectMsg) {
             navigate('/dashboard')
