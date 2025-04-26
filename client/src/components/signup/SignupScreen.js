@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useRef } from 'react'
 import StandardContainer from '../StandardContainer'
 import AlternativeLink from '../common/AlternativeLink'
 import FormSubmitButton from '../common/FormSubmitButton'
@@ -7,6 +7,7 @@ import FormTextInput from '../common/FormTextInput'
 import FormContainer from '../common/FormContainer'
 import signup from '../../utils/api/signup'
 import * as UserActions from '../../state/actions/user.actions'
+import * as GeneralActions from '../../state/actions/general.actions'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 
@@ -26,6 +27,8 @@ export default function SignupScreen() {
     const handleSignup = async (event) => {
         event.preventDefault()
 
+        dispatch(GeneralActions.requestStart())
+
         const signupResult = await signup({
             firstName: firstNameRef.current.value,
             lastName: lastNameRef.current.value,
@@ -36,6 +39,7 @@ export default function SignupScreen() {
         })
 
         dispatch(UserActions.processSignupResult(signupResult))
+        dispatch(GeneralActions.requestEnd())
 
         if (!signupResult.incorrectMsg) {
             navigate('/dashboard')
