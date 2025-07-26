@@ -28,6 +28,6 @@ jobs:
       with:
         deliverables: server/app.yaml
         version: ${{ github.sha }}
-        project_id: fake-bank-432202
+        project_id: mikeoxlongbanking
         credentials: ${{ secrets.GCP_DEPLOYMENT_KEY }}
         flags: '--verbosity=debug'
