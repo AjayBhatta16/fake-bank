@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "server/**"
+      - ".github/workflows/deploy-server.yml"
     branches:
       - production  # Or any branch you want to deploy from
 
