@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "client/**"
+      - ".github/workflows/deploy-client.yml"
     branches:
       - production
 
@@ -27,7 +28,7 @@ jobs:
       run: cd client && CI=false && npm run build
 
     - name: Deploy to Firebase
-      uses: w9jds/firebase-action@master
+      uses: w9jds/firebase-action@v14.10.1
       with: 
         args: deploy --only hosting
       env:
